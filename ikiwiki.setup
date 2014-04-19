@@ -60,6 +60,8 @@ add_plugins:
 - version
 - theme
 - sidebar
+- gitpush
+- comments
 # plugins to disable
 disable_plugins: []
 # additional directory to search for template files
@@ -77,7 +79,7 @@ prefix_directives: 1
 # use page/index.mdwn source files
 indexpages: 0
 # enable Discussion pages?
-discussion: 1
+discussion: 0
 # name of Discussion pages
 discussionpage: Discussion
 # generate HTML5?
@@ -160,7 +162,8 @@ gitmaster_branch: master
 
 # gitpush plugin
 # git repository urls that changes are pushed to
-#git_push_to: []
+git_push_to:
+- joey@git.kitenet.net:/srv/git/propellor
 
 # htmlscrubber plugin
 # PageSpec specifying pages not to scrub
@@ -186,7 +189,7 @@ ipv6_disabled: 0
 # enable rss feeds by default?
 rss: 1
 # enable atom feeds by default?
-atom: 1
+atom: 0
 # allow rss feeds to be used?
 #allowrss: 0
 # allow atom feeds to be used?
@@ -315,13 +318,13 @@ virus_checker: clamdscan -
 
 # comments plugin
 # PageSpec of pages where comments are allowed
-comments_pagespec: ''
+comments_pagespec: '*'
 # PageSpec of pages where posting new comments is not allowed
 comments_closed_pagespec: ''
 # Base name for comments, e.g. "comment_" for pages like "sandbox/comment_12"
 comments_pagename: comment_
 # Interpret directives in comments?
-#comments_allowdirectives: 0
+comments_allowdirectives: 1
 # Allow anonymous commenters to set an author name?
 #comments_allowauthor: 0
 # commit comments to the VCS
