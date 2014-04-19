@@ -318,9 +318,9 @@ virus_checker: clamdscan -
 
 # comments plugin
 # PageSpec of pages where comments are allowed
-comments_pagespec: '*'
+comments_pagespec: '* and !index'
 # PageSpec of pages where posting new comments is not allowed
-comments_closed_pagespec: index
+comments_closed_pagespec: ''
 # Base name for comments, e.g. "comment_" for pages like "sandbox/comment_12"
 comments_pagename: comment_
 # Interpret directives in comments?
