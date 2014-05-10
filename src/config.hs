@@ -41,7 +41,7 @@ quid2CheckService = (Cron.job "quid2-check" "*/15 * * * *" "root" "/root" "/root
                     `requires` 
                     (deployMyPackage "quid2-check"
                      `requires` Apt.installed ["nmap","mailutils"]
-                     `requires` Ssh.knownHost hosts "quid2.org:2222" "root"
+                     `requires` Ssh.knownHost hosts "[quid2.org]:2222" "root"
                      `requires` quidUtilPkg)             
              
 quidUtilPkg = deployMyPackage "quid2-util"
