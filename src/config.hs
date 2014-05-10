@@ -26,7 +26,8 @@ hosts :: [Host]
 hosts =
 	[ host "nano.quid2.org"
           & Apt.unattendedUpgrades
-          & Git.cloned "root" "https://github.com/tittoassini/quid2-util" "/root/repo" Nothing
+          & cloneMyRepo "quid2-util"
+          & cloneMyRepo "quid2-check"
           {-
 		& Apt.stdSourcesList Unstable
 		& Apt.unattendedUpgrades
@@ -48,3 +49,5 @@ hosts =
 	-- add more hosts here...
 	--, host "foo.example.com" = ...
 	]
+
+cloneMyRepo repo = Git.cloned "root" ("https://github.com/tittoassini/" ++ repo) ("/root/repo/"++repo) Nothing
