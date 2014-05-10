@@ -31,7 +31,7 @@ hosts =
           & Apt.installed ["zlib1g-dev"]
           & deployMyPackage "propellor" 
           & deployMyPackage "quid2-util" 
-          -- & cloneMyRepo "quid2-check"
+          & deployMyPackage "quid2-check"
           {-
 		& Apt.stdSourcesList Unstable
 		& Apt.unattendedUpgrades
