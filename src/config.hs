@@ -23,7 +23,8 @@ main = defaultMain hosts
 -- Edit this to configure propellor!
 hosts :: [Host]
 hosts =
-	[ host "nano.quid2.org"{-
+	[ host "nano.quid2.org" 		& Apt.unattendedUpgrades
+          {-
 		& Apt.stdSourcesList Unstable
 		& Apt.unattendedUpgrades
 		& Apt.installed ["etckeeper"]
