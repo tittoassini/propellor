@@ -27,6 +27,8 @@ hosts :: [Host]
 hosts =
 	[ host "nano.quid2.org"
           & Apt.unattendedUpgrades
+          & cabalUpdate
+          & deployMyPackage "propellor" 
           & deployMyPackage "quid2-util" 
           -- & cloneMyRepo "quid2-check"
           {-
@@ -51,13 +53,15 @@ hosts =
 	--, host "foo.example.com" = ...
 	]
 
+cabalUpdate = userScriptProperty "root" ["cabal update"]
+
 deployMyPackage :: String -> Property
 deployMyPackage repo = rebuildMyRepo repo `requires` cloneMyRepo repo
 
 rebuildMyRepo :: String -> Property
 rebuildMyRepo repo = userScriptProperty "root"
                      ["cd /root/repo/" ++ repo
-                     ,"cabal install --disable-documentation --force-reinstalls --reinstall"
+                     ,"cabal install --verbose=1 --disable-documentation --force-reinstalls --reinstall"
                      ]
 
 cloneMyRepo :: String -> Property
