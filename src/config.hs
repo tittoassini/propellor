@@ -8,6 +8,7 @@ import qualified Propellor.Property.File as File
 import qualified Propellor.Property.Apt as Apt
 import qualified Propellor.Property.Network as Network
 --import qualified Propellor.Property.Ssh as Ssh
+import qualified Propellor.Property.Cmd as Cmd
 import qualified Propellor.Property.Cron as Cron
 --import qualified Propellor.Property.Sudo as Sudo
 import qualified Propellor.Property.User as User
@@ -26,8 +27,8 @@ hosts :: [Host]
 hosts =
 	[ host "nano.quid2.org"
           & Apt.unattendedUpgrades
-          & cloneMyRepo "quid2-util"
-          & cloneMyRepo "quid2-check"
+          & deployMyPackage "quid2-util" 
+          -- & cloneMyRepo "quid2-check"
           {-
 		& Apt.stdSourcesList Unstable
 		& Apt.unattendedUpgrades
@@ -50,4 +51,14 @@ hosts =
 	--, host "foo.example.com" = ...
 	]
 
+deployMyPackage :: String -> Property
+deployMyPackage repo = rebuildMyRepo repo `requires` cloneMyRepo repo
+
+rebuildMyRepo :: String -> Property
+rebuildMyRepo repo = userScriptProperty "root"
+                     ["cd /root/repo/" ++ repo
+                     ,"cabal install --disable-documentation --force-reinstalls --reinstall"
+                     ]
+
+cloneMyRepo :: String -> Property
 cloneMyRepo repo = Git.cloned "root" ("https://github.com/tittoassini/" ++ repo) ("/root/repo/"++repo) Nothing
