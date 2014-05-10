@@ -28,7 +28,7 @@ hosts :: [Host]
 hosts =
 	[ host "nano.quid2.org"
           & Apt.unattendedUpgrades
-          & cabalUpdate
+          -- & cabalUpdate
           & quid2CheckService
           {-
 		& Apt.stdSourcesList Unstable

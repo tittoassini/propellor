@@ -138,7 +138,7 @@ knownHost hosts hn user = property desc $
 			, File.ownerGroup f user user
 			]
 	go _ = do
-		warningMessage $ "no configred sshPubKey for " ++ hn
+		warningMessage $ "no configured sshPubKey for " ++ hn
 		return FailedChange
 
 -- | Makes a user have authorized_keys from the PrivData
