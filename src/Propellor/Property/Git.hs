@@ -62,7 +62,7 @@ type Branch = String
 --
 -- A branch can be specified, to check out.
 cloned :: UserName -> RepoUrl -> FilePath -> Maybe Branch -> Property
-cloned owner url dir mbranch = check originurl (property desc checkout)
+cloned owner url dir mbranch = check originurl (property desc checkout) `onNoChange` update
 	`requires` installed
   where
 	desc = "git cloned " ++ url ++ " to " ++ dir
@@ -74,7 +74,7 @@ cloned owner url dir mbranch = check originurl (property desc checkout)
 			return (v /= Just url)
 		, return True
 		)
-        updated = userScriptProperty owner $ ["cd " ++ shellEscape dir
+        update = userScriptProperty owner $ ["cd " ++ shellEscape dir
                                              ,"git pull origin " ++ fromMaybe "" mbranch]
 	checkout = do
 		liftIO $ do
@@ -93,3 +93,4 @@ cloned owner url dir mbranch = check originurl (property desc checkout)
 			-- installed here.
 			, Just "git update-server-info"
 			]
+

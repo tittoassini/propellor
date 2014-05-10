@@ -79,6 +79,17 @@ p `onChange` hook = Property (propertyDesc p) satisfy (combineSetAttr p hook)
 				return $ r <> r'
 			_ -> return r
 
+onNoChange :: Property -> Property -> Property
+p `onNoChange` hook = Property (propertyDesc p) satisfy (combineSetAttr p hook)
+  where
+	satisfy = do
+		r <- ensureProperty p
+		case r of
+			NoChange -> do
+				r' <- ensureProperty hook
+				return $ r <> r'
+			_ -> return r
+
 (==>) :: Desc -> Property -> Property
 (==>) = flip describe
 infixl 1 ==>
