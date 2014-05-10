@@ -19,6 +19,14 @@ import qualified Propellor.Property.User as User
 import qualified Propellor.Property.Docker as Docker
 import qualified Propellor.Property.Git as Git
 
+{-
+Propellor:
+propellor --spin nano.quid2.org
+propellor --set nano.quid2.org 'Password "quidagent@gmail.com"'
+propellor --set nano.quid2.org 'SshPubKey SshRsa ""'
+propellor --set nano.quid2.org 'SshPrivKey SshRsa ""'
+-}
+
 main :: IO ()
 main = defaultMain hosts
 
@@ -34,7 +42,7 @@ hosts =
           
           & quid2CheckService -- need to be accepted
 
-          & deployMyPackage "quid2-titto"
+          -- & deployMyPackage "quid2-titto"
           
         ,host "[quid2.org]:2222" & sshPubKey "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCR89KzcSBEJQ38/1gKIt/sqa4L71RzwoPS24qKyv5SmSJuWMpbPpoGIep6ucUYXFAtaLKwHxVXHfWrE4szZtYP+qVb9sVdPhhQ1GQThJFBHKJzSkk7jmO3tZ0gwl25GYebvTWoj+MszpdBxtofhHqiYmPFTSN/wlVGU1UmpZI6uUAUu+DA+1/uOHFCwCniQoLloiVDOGudKUAwaTubGc/qjVxQIfOACbbDN7CkbVA8NuKwqbfEZta3jafwk3HgIyQmDBU7gMYLWS0Z5GX4HsNEsogMsxNslNrG+EWwOgs1myVF2Uplw5h+1gnErREocWDrQ6jMAJRNp5QT4qO0bouX" 
 	]
