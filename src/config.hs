@@ -28,6 +28,7 @@ hosts =
 	[ host "nano.quid2.org"
           & Apt.unattendedUpgrades
           & cabalUpdate
+          & Apt.installed ["zlib1g-dev"]
           & deployMyPackage "propellor" 
           & deployMyPackage "quid2-util" 
           -- & cloneMyRepo "quid2-check"

@@ -74,6 +74,8 @@ cloned owner url dir mbranch = check originurl (property desc checkout)
 			return (v /= Just url)
 		, return True
 		)
+        updated = userScriptProperty owner $ ["cd " ++ shellEscape dir
+                                             ,"git pull origin " ++ fromMaybe "" mbranch]
 	checkout = do
 		liftIO $ do
 			whenM (doesDirectoryExist dir) $
