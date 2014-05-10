@@ -15,6 +15,7 @@ import qualified Propellor.Property.User as User
 --import qualified Propellor.Property.Reboot as Reboot
 --import qualified Propellor.Property.Tor as Tor
 import qualified Propellor.Property.Docker as Docker
+import qualified Propellor.Property.Git as Git
 
 main :: IO ()
 main = defaultMain hosts
@@ -23,7 +24,9 @@ main = defaultMain hosts
 -- Edit this to configure propellor!
 hosts :: [Host]
 hosts =
-	[ host "nano.quid2.org" 		& Apt.unattendedUpgrades
+	[ host "nano.quid2.org"
+          & Apt.unattendedUpgrades
+          & Git.cloned "root" "https://github.com/tittoassini/quid2-util" "/root/repo" Nothing
           {-
 		& Apt.stdSourcesList Unstable
 		& Apt.unattendedUpgrades
