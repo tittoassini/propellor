@@ -25,6 +25,9 @@ propellor --spin nano.quid2.org
 propellor --set nano.quid2.org 'Password "quidagent@gmail.com"'
 propellor --set nano.quid2.org 'SshPubKey SshRsa ""'
 propellor --set nano.quid2.org 'SshPrivKey SshRsa ""'
+
+propellor --set nano.quid2.org 'SshPubKey SshRsa "root"'
+propellor --set nano.quid2.org 'SshPrivKey SshRsa "root"'
 -}
 
 main :: IO ()
@@ -37,7 +40,9 @@ hosts =
 	[ host "nano.quid2.org"
           & Apt.unattendedUpgrades
           -- & cabalUpdate
-          & Ssh.hostKey SshRsa 
+          
+          & Ssh.hostKey SshRsa
+          & Ssh.keyImported SshRsa "root"
           -- & Ssh.randomHostKeys
           
           & quid2CheckService -- need to be accepted
