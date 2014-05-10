@@ -1,5 +1,5 @@
 Name: propellor
-Version: 0.5.1
+Version: 0.5.1.11
 Cabal-Version: >= 1.6
 License: GPL
 Maintainer: Joey Hess <joey@kitenet.net>
@@ -39,7 +39,7 @@ Executable propellor
   GHC-Options: -Wall -threaded
   Build-Depends: MissingH, directory, filepath, base >= 4.5, base < 5, 
    IfElse, process, bytestring, hslogger, unix-compat, ansi-terminal,
-   containers, network, async, time, QuickCheck, mtl,
+   containers, network==2.4.*, async, time, QuickCheck, mtl,
    MonadCatchIO-transformers
   
   if (! os(windows))
