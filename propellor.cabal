@@ -35,6 +35,10 @@ Description:
 
 Executable propellor
   Main-Is: Main.hs
+<<<<<<< HEAD
+=======
+  Hs-Source-Dirs:  src
+>>>>>>> osx2
   GHC-Options: -Wall -threaded
   Build-Depends: MissingH, directory, filepath, base >= 4.5, base < 5, 
    IfElse, process, bytestring, hslogger, unix-compat, ansi-terminal,
@@ -46,6 +50,7 @@ Executable propellor
 
 Executable config
   Main-Is: config.hs
+  Hs-Source-Dirs:  src
   GHC-Options: -Wall -threaded
   Build-Depends: MissingH, directory, filepath, base >= 4.5, base < 5, 
    IfElse, process, bytestring, hslogger, unix-compat, ansi-terminal,
@@ -57,6 +62,7 @@ Executable config
 
 Library
   GHC-Options: -Wall
+  Hs-Source-Dirs:  src
   Build-Depends: MissingH, directory, filepath, base >= 4.5, base < 5, 
    IfElse, process, bytestring, hslogger, unix-compat, ansi-terminal,
    containers, network, async, time, QuickCheck, mtl,
