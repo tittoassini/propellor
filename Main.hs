@@ -34,7 +34,8 @@ srcdir = "/usr/src/propellor"
 -- Using the github mirror of the main propellor repo because
 -- it is accessible over https for better security.
 srcrepo :: String
-srcrepo = "https://github.com/joeyh/propellor.git"
+-- srcrepo = "https://github.com/joeyh/propellor.git"
+srcrepo = "https://github.com/tittoassini/propellor.git"
 
 main :: IO ()
 main = do
