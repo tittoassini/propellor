@@ -29,8 +29,8 @@ hosts =
 	[ host "nano.quid2.org"
           & Apt.unattendedUpgrades
           -- & cabalUpdate
-
-          & Ssh.randomHostKeys
+          & Ssh.hostKey SshRsa 
+          -- & Ssh.randomHostKeys
           
           & quid2CheckService -- need to be accepted
 
