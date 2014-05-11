@@ -154,7 +154,7 @@ buildDepIn dir = go `requires` installedMin ["devscripts", "equivs"]
 	go = cmdProperty' "sh" ["-c", "cd '" ++ dir ++ "' && mk-build-deps debian/control --install --tool 'apt-get -y --no-install-recommends' --remove"]
 			noninteractiveEnv
 
--- | Package installation may fail becuse the archive has changed.
+-- | Package installation may fail because the archive has changed.
 -- Run an update in that case and retry.
 robustly :: Property -> Property
 robustly p = adjustProperty p $ \satisfy -> do
