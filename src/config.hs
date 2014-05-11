@@ -38,15 +38,14 @@ main = defaultMain hosts
 hosts :: [Host]
 hosts =
 	[ host "nano.quid2.org"
+          {-
           & Apt.unattendedUpgrades
-          -- & cabalUpdate
-          
+          & cabalUpdate          
           & Ssh.hostKey SshRsa
-
           & Ssh.keyImported SshRsa "root"
-          
           & quid2CheckService
-
+          -}
+          
           & quid2TittoPkg
           & service "quid2-titto" 
 
