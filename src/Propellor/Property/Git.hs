@@ -64,18 +64,11 @@ type Branch = String
 cloned,cloned_ :: UserName -> RepoUrl -> FilePath -> Maybe Branch -> Property
 cloned owner url dir mbranch =  cloned_ owner url dir mbranch `requires` installed
 
-cloned_ owner url dir mbranch = check originurl (property desc checkout) `onNoChange` update
+cloned_ owner url dir mbranch = check (wrongRepo url dir) (property desc checkout) `onNoChange` update
 
   where
 	desc = "git cloned " ++ url ++ " to " ++ dir
-	gitconfig = dir </> ".git/config"
-	originurl = ifM (doesFileExist gitconfig)
-		( do
-			v <- catchDefaultIO Nothing $ headMaybe . lines <$>
-				readProcess "git" ["config", "--file", gitconfig, "remote.origin.url"]
-			return (v /= Just url)
-		, return True
-		)
+	
         update = userScriptProperty owner $ ["cd " ++ shellEscape dir
                                              ,"git pull origin " ++ fromMaybe "" mbranch]
 	checkout = do
@@ -96,3 +89,10 @@ cloned_ owner url dir mbranch = check originurl (property desc checkout) `onNoCh
 			, Just "git update-server-info"
 			]
 
+wrongRepo url dir =
+  let gitconfig = dir </> ".git/config"
+  in ifM (doesFileExist gitconfig)
+     (do
+         v <- catchDefaultIO Nothing $ headMaybe . lines <$> readProcess "git" ["config", "--file", gitconfig, "remote.origin.url"]
+         return (v /= Just url)
+      ,return True)
