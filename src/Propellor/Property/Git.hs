@@ -61,9 +61,11 @@ type Branch = String
 -- deleted.
 --
 -- A branch can be specified, to check out.
-cloned :: UserName -> RepoUrl -> FilePath -> Maybe Branch -> Property
-cloned owner url dir mbranch = check originurl (property desc checkout) `onNoChange` update
-	`requires` installed
+cloned,cloned_ :: UserName -> RepoUrl -> FilePath -> Maybe Branch -> Property
+cloned owner url dir mbranch =  cloned_ owner url dir mbranch `requires` installed
+
+cloned_ owner url dir mbranch = check originurl (property desc checkout) `onNoChange` update
+
   where
 	desc = "git cloned " ++ url ++ " to " ++ dir
 	gitconfig = dir </> ".git/config"
