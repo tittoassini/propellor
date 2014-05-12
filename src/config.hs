@@ -57,7 +57,7 @@ hosts =
 
 quid2TittoService = service "quid2-titto" `requires` quid2TittoPkg
 
-service name = userScriptProperty "root" [concat ["/root/.cabal/bin/",name," restart"]]
+service name = userScriptProperty "root" [concat ["/root/.cabal/bin/",name," stop"],concat ["/root/.cabal/bin/",name," start"]]
                `requires` User.accountFor name
 
 quid2TittoPkg = deployMyPackage "quid2-titto"
