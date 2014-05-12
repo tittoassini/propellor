@@ -48,14 +48,17 @@ hosts =
           & quid2CheckService
           -}
           
-          & quid2TittoPkg
-          & service "quid2-titto" 
+          & quid2TittoService
+
 
         -- quid2.org service  
         ,host "[quid2.org]:2222" & sshPubKey "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCR89KzcSBEJQ38/1gKIt/sqa4L71RzwoPS24qKyv5SmSJuWMpbPpoGIep6ucUYXFAtaLKwHxVXHfWrE4szZtYP+qVb9sVdPhhQ1GQThJFBHKJzSkk7jmO3tZ0gwl25GYebvTWoj+MszpdBxtofhHqiYmPFTSN/wlVGU1UmpZI6uUAUu+DA+1/uOHFCwCniQoLloiVDOGudKUAwaTubGc/qjVxQIfOACbbDN7CkbVA8NuKwqbfEZta3jafwk3HgIyQmDBU7gMYLWS0Z5GX4HsNEsogMsxNslNrG+EWwOgs1myVF2Uplw5h+1gnErREocWDrQ6jMAJRNp5QT4qO0bouX" 
 	]
 
-service name = User.accountFor name
+quid2TittoService = service "quid2-titto" `requires` quid2TittoPkg
+
+service name = userScriptProperty "root" [concat ["/root/.cabal/bin/",name," restart"]]
+               `requires` User.accountFor name
 
 quid2TittoPkg = deployMyPackage "quid2-titto"
               `requires` Apt.installed ["git"]
