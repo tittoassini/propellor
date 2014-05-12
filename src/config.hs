@@ -57,7 +57,9 @@ hosts =
 
 quid2TittoService = background "quid2-titto" `requires` quid2TittoPkg
 
-background name = userScriptProperty "root" [concat ["killall -s SIGKILL",name],concat ["/root/.cabal/bin/",name,"&"]]
+background name = userScriptProperty "root" [unwords ["killall -s SIGKILL",name]
+                                            ,unwords ["/root/.cabal/bin/"++name,"&"]
+                                            ]
 
 service name = userScriptProperty "root" [concat ["/root/.cabal/bin/",name," stop"],concat ["/root/.cabal/bin/",name," start"]]
                `requires` User.accountFor name
