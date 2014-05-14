@@ -37,7 +37,11 @@ main = defaultMain hosts
 -- Edit this to configure propellor!
 hosts :: [Host]
 hosts =
-	[ host "nano.quid2.org" & sshPubKey "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC/h5q0pshKWDldX+vk2pFo/JdfcgrCBt73R7h/pThvyXshBGKYCB+X3dsT1ew895A9tSUIbwC7yCjXClPFfva++a7SA9D8qEWtoWuhm3KUqsGnA/5RhiyYl5WODt005xzksGUaRSTggc++0jegtDsNKADpqEY8c74ffg09C1mWGBKgJE+OCYSEpWsQ+KDpbwyyZvaUiVIDt11XfM7zwwidbgOtTO3+cohE/EkkgR47YD/OEdtcgTzemEy6Z/zdLa2uQeiCgVauSPTmJR9FKD76etaiFDTeHkLdpuCPO3NhDKR1cobRYReyatQLa3lCWdQWCUNx0AUX6vBWf7VbAX0V"
+	[{-
+          nano.quid2.org: 
+ * add system firewall (with propellor?)
+-}
+          host "nano.quid2.org" & sshPubKey "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC/h5q0pshKWDldX+vk2pFo/JdfcgrCBt73R7h/pThvyXshBGKYCB+X3dsT1ew895A9tSUIbwC7yCjXClPFfva++a7SA9D8qEWtoWuhm3KUqsGnA/5RhiyYl5WODt005xzksGUaRSTggc++0jegtDsNKADpqEY8c74ffg09C1mWGBKgJE+OCYSEpWsQ+KDpbwyyZvaUiVIDt11XfM7zwwidbgOtTO3+cohE/EkkgR47YD/OEdtcgTzemEy6Z/zdLa2uQeiCgVauSPTmJR9FKD76etaiFDTeHkLdpuCPO3NhDKR1cobRYReyatQLa3lCWdQWCUNx0AUX6vBWf7VbAX0V"
           
           {-
           & Apt.unattendedUpgrades
@@ -49,8 +53,20 @@ hosts =
           & quid2TittoService
           -}
 
-        ,host "quid2.mooo.com" & sshPubKey "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCkjijLCHmoyOdV6EdcorFN+kB786wRKswwQ8aLSzNhg8DRyXogEXWcQ3YPFa8vBBcCiuDtagwWndBpMazPMo/BUQNjMlxRuYzxRCrYHxEkmMf2VySFUMgKKlMZDnwNGi+61GMRoKytUmkZufL/oovEaIXpQrcT3Gypj9c3d4bmA9bSYg5FNBHHnm/se4orhniBPtlaqkFoGqytSARErtpR+MJkTgS/BJ2LKwO1hi4SLuwHzddJ8axZTcCb0GFWzEuTVMfnrQvRfmCFHnnkjdHezvWu1nRvsJQeosYPIQLlv06kfbjs7rQxXVVuZwM3VFZgxPfZFXWpFsmkAymJ7Xwd"
-          
+          {-
+* Add crontab jobs
+        -- PROB: cannot deploy propellor?
+-}
+        ,host "quid2.mooo.com"
+         & Apt.update & Apt.upgrade & Apt.unattendedUpgrades
+         & sshPubKey "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCkjijLCHmoyOdV6EdcorFN+kB786wRKswwQ8aLSzNhg8DRyXogEXWcQ3YPFa8vBBcCiuDtagwWndBpMazPMo/BUQNjMlxRuYzxRCrYHxEkmMf2VySFUMgKKlMZDnwNGi+61GMRoKytUmkZufL/oovEaIXpQrcT3Gypj9c3d4bmA9bSYg5FNBHHnm/se4orhniBPtlaqkFoGqytSARErtpR+MJkTgS/BJ2LKwO1hi4SLuwHzddJ8axZTcCb0GFWzEuTVMfnrQvRfmCFHnnkjdHezvWu1nRvsJQeosYPIQLlv06kfbjs7rQxXVVuZwM3VFZgxPfZFXWpFsmkAymJ7Xwd"
+
+         {-
+quid2.org:
+ * periodically copy full copy of backup (maybe with obnam?)
+ * add system firewall
+ * fix quid2 and REBOOT
+-}
         ,host "quid2.org"
          & alias "backup.quid2.org"
          & sshPubKey "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDYlRxBBfWKQWtemEORJLeP6InDRS9x7PvrEaPTCFW/uyneMhs7Ug9xDt/xdq9AIJeGlQxmAAHabIRvoTzAmgI4/c9PXB337BkpF4oPt7tpGJZN3FfyeOM33ShnFyIG0HswwXj8XSQ5K8DGQiClg7wP06ez3jyW+4z0FaXFrD3PKF0ANhjfPjq9wWJi/xZs4sEV4SPnlUNGn2ofAKkDBepdc9igvIZb/TY1UIhZouiPCHICnM6x/UgPuyx+v0zIrpJJs0Hosu2f6Te9rwjdYGPccQRmUG7LXKJXPSyxu9txQT7frwm1PA+NVb8KR4qsH51qqufzshqOyBk3+51KlL1v"  
