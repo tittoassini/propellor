@@ -57,7 +57,7 @@ type Branch = String
 
 -- | Specified git repository is cloned to the specified directory.
 --
--- If the firectory exists with some other content, it will be recursively
+-- If the directory exists with some other content, it will be recursively
 -- deleted.
 --
 -- A branch can be specified, to check out.
