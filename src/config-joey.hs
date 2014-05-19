@@ -58,7 +58,7 @@ hosts =               --                  (o)  `
 
 		& alias "openid.kitenet.net"
 		& Docker.docked hosts "openid-provider"
-		 	`requires` Apt.installed ["ntp"]
+		 	`requires` Apt.serviceInstalledRunning "ntp"
 
 		& alias "ancient.kitenet.net"
 		& Docker.docked hosts "ancient-kitenet"
@@ -72,14 +72,17 @@ hosts =               --                  (o)  `
 		
 		& alias "ns9.kitenet.net"
 		& myDnsSecondary
-
-		& Docker.garbageCollected `period` Daily
-		& Apt.installed ["git-annex", "mtr", "screen"]
+		
+		& alias "znc.kitenet.net"
+		& JoeySites.ircBouncer
 
 		-- Nothing is using https on clam, so listen on that port
 		-- for ssh, for traveling on bad networks.
 		& "/etc/ssh/sshd_config" `File.containsLine` "Port 443"
 			`onChange` Service.restarted "ssh"
+
+		& Docker.garbageCollected `period` Daily
+		& Apt.installed ["git-annex", "mtr", "screen"]
 	
 	-- Orca is the main git-annex build box.
 	, standardSystem "orca.kitenet.net" Unstable "amd64"
@@ -91,8 +94,8 @@ hosts =               --                  (o)  `
 		& Docker.configured
 		& Docker.docked hosts "amd64-git-annex-builder"
 		& Docker.docked hosts "i386-git-annex-builder"
-		! Docker.docked hosts "armel-git-annex-builder-companion"
-		! Docker.docked hosts "armel-git-annex-builder"
+		& Docker.docked hosts "armel-git-annex-builder-companion"
+		& Docker.docked hosts "armel-git-annex-builder"
 		& Docker.garbageCollected `period` Daily
 		& Apt.buildDep ["git-annex"] `period` Daily
 	
@@ -249,6 +252,22 @@ image (System (Debian Unstable) arch) = "joeyh/debian-unstable-" ++ arch
 image (System (Debian Stable) arch) = "joeyh/debian-stable-" ++ arch
 image _ = "debian-stable-official" -- does not currently exist!
 
+-- Digital Ocean does not provide any way to boot
+-- the kernel provided by the distribution, except using kexec.
+-- Without this, some old, and perhaps insecure kernel will be used.
+--
+-- Note that this only causes the new kernel to be loaded on reboot.
+-- If the power is cycled, the old kernel still boots up.
+-- TODO: detect this and reboot immediately?
+digitalOceanDistroKernel :: Property
+digitalOceanDistroKernel = propertyList "digital ocean distro kernel hack"
+	[ Apt.installed ["grub-pc", "kexec-tools"]
+	, "/etc/default/kexec" `File.containsLines`
+		[ "LOAD_KEXEC=true"
+		, "USE_GRUB_CONFIG=true"
+		]
+	]
+
 -- Clean up a system as installed by cloudatcost.com
 cleanCloudAtCost :: Property
 cleanCloudAtCost = propertyList "cloudatcost cleanup"
@@ -330,6 +349,7 @@ monsters =	      -- but do want to track their public keys etc.
 		& alias "joey.kitenet.net"
 		& alias "annex.kitenet.net"
 		& alias "ipv6.kitenet.net"
+		& alias "bitlbee.kitenet.net"
 	, host "mouse.kitenet.net"
 		& ipv6 "2001:4830:1600:492::2"
 	, host "beaver.kitenet.net"

@@ -6,7 +6,7 @@
 module Propellor.SimpleSh where
 
 import Network.Socket
-import Control.Concurrent.Chan
+import Control.Concurrent
 import Control.Concurrent.Async
 import System.Process (std_in, std_out, std_err)
 
@@ -31,18 +31,12 @@ simpleSh namedpipe = do
 	listen s 2
 	forever $ do
 		(client, _addr) <- accept s
-		h <- socketToHandle client ReadWriteMode
-		maybe noop (run h) . readish =<< hGetLine h
+		forkIO $ do
+			h <- socketToHandle client ReadWriteMode
+			maybe noop (run h) . readish =<< hGetLine h
   where
 	run h (Cmd cmd params) = do
-		let p = (proc cmd params)
-                	{ std_in = Inherit
-	                , std_out = CreatePipe
-			, std_err = CreatePipe
-			}
-		(Nothing, Just outh, Just errh, pid) <- createProcess p
 		chan <- newChan
-
 		let runwriter = do
 			v <- readChan chan
 			hPutStrLn h (show v)
@@ -52,34 +46,39 @@ simpleSh namedpipe = do
 				_ -> runwriter
 		writer <- async runwriter
 
-		let mkreader t from = maybe noop (const $ mkreader t from) 
-			=<< catchMaybeIO (writeChan chan . t =<< hGetLine from)
-		void $ concurrently
-			(mkreader StdoutLine outh)
-			(mkreader StderrLine errh)
-		
-		void $ tryIO $ waitForProcess pid
+		flip catchIO (\_e -> writeChan chan Done) $ do
+			let p = (proc cmd params)
+	                	{ std_in = Inherit
+		                , std_out = CreatePipe
+				, std_err = CreatePipe
+				}
+			(Nothing, Just outh, Just errh, pid) <- createProcess p
 
-		writeChan chan Done
+			let mkreader t from = maybe noop (const $ mkreader t from) 
+				=<< catchMaybeIO (writeChan chan . t =<< hGetLine from)
+			void $ concurrently
+				(mkreader StdoutLine outh)
+				(mkreader StderrLine errh)
+		
+			void $ tryIO $ waitForProcess pid
+
+			writeChan chan Done
+
+			hClose outh
+			hClose errh
 
 		wait writer
-
-		hClose outh
-		hClose errh
 		hClose h
 
 simpleShClient :: FilePath -> String -> [String] -> ([Resp] -> IO a) -> IO a
 simpleShClient namedpipe cmd params handler = do
-	debug ["simplesh connecting"]
 	s <- socket AF_UNIX Stream defaultProtocol
 	connect s (SockAddrUnix namedpipe)
 	h <- socketToHandle s ReadWriteMode
 	hPutStrLn h $ show $ Cmd cmd params
 	hFlush h
-	debug ["simplesh sent command"]
 	resps <- catMaybes . map readish . lines <$> hGetContents h
 	v <- hClose h `after` handler resps
-	debug ["simplesh processed response"]
 	return v
 
 simpleShClientRetry :: Int -> FilePath -> String -> [String] -> ([Resp] -> IO a) -> IO a

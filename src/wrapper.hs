@@ -1,7 +1,7 @@
 -- | Wrapper program for propellor distribution.
 --
 -- Distributions should install this program into PATH.
--- (Cabal builds it as dict/build/propellor.
+-- (Cabal builds it as dist/build/propellor.
 --
 -- This is not the propellor main program (that's config.hs)
 --
@@ -36,6 +36,7 @@ srcdir = "/usr/src/propellor"
 srcrepo :: String
 -- srcrepo = "https://github.com/joeyh/propellor.git"
 srcrepo = "https://github.com/tittoassini/propellor.git"
+
 
 main :: IO ()
 main = do
