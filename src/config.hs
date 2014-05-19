@@ -21,7 +21,8 @@ import qualified Propellor.Property.Git as Git
 
 {-
 Propellor:
-~/.propellor/propellor --spin nano.quid2.org
+
+cd ~/.propellor;propellor --spin nano.quid2.org
 propellor --set nano.quid2.org 'Password "quidagent@gmail.com"'
 propellor --set nano.quid2.org 'SshPubKey SshRsa ""'
 propellor --set nano.quid2.org 'SshPrivKey SshRsa ""'
