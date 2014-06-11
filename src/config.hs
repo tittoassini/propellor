@@ -58,7 +58,6 @@ hosts =
           & quid2CheckService
           & quid2TittoService
 
-
           {-
 * deploy propellor: PROB: Unable to locate package libghc-async-dev
 * Add crontab jobs
