@@ -59,7 +59,7 @@ hosts =
           & cabalUpdate          
           & quid2CheckService
 -}
-          & quid2TittoService
+          & quid2TittoService -- BUG: fails to start
 
           {-
 * deploy propellor: PROB: Unable to locate package libghc-async-dev
