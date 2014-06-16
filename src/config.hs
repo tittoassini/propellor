@@ -58,7 +58,6 @@ hosts =
           & Apt.installed ["emacs24"]
           & cabalUpdate          
           & quid2CheckService
-
           & quid2TittoService -- BUG: fails to start unless is already running
 
           {-
