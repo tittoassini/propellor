@@ -221,7 +221,15 @@ unattendedUpgrades = RevertableProperty enable disable
 					"/etc/apt/apt.conf.d/50unattended-upgrades"
 						`File.containsLine`
 					("Unattended-Upgrade::Origins-Pattern { \"o=Debian,a="++showSuite suite++"\"; };")
-			_ -> noChange
+                        (Just (System (Ubuntu release) _)) -> ensureProperty $
+					"/etc/apt/apt.conf.d/10periodic"
+						`File.hasContent` [
+                                                  "APT::Periodic::Update-Package-Lists \"1\";"
+                                                  ,"APT::Periodic::Download-Upgradeable-Packages \"1\";"
+                                                  ,"APT::Periodic::AutocleanInterval \"7\";"
+                                                  ,"APT::Periodic::Unattended-Upgrade \"1\";"
+                                                  ]
+                        _ -> noChange
 
 -- | Preseeds debconf values and reconfigures the package so it takes
 -- effect.
