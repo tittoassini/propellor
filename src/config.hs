@@ -102,7 +102,7 @@ hosts =
 
 quid2TittoService = background "quid2-titto" `requires` quid2TittoPkg
 
-background name = userScriptProperty "root" [unwords ["killall -s SIGKILL",name]
+background name = userScriptProperty "root" [unwords ["killall -s SIGKILL",name,";true"]
                                             ,unwords ["/root/.cabal/bin/"++name,"> /dev/null 2>&1 &"]
                                             ]
 
