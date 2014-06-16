@@ -216,13 +216,14 @@ unattendedUpgrades = RevertableProperty enable disable
 	configure = withOS "unattended upgrades configured" $ \o ->
 		case o of
 			-- the package defaults to only upgrading stable
+                        os -> error (show os)
 			(Just (System (Debian suite) _))
 				| not (isStable suite) -> ensureProperty $
 					"/etc/apt/apt.conf.d/50unattended-upgrades"
 						`File.containsLine`
 					("Unattended-Upgrade::Origins-Pattern { \"o=Debian,a="++showSuite suite++"\"; };")
-                        os -> error (show os)
-                        (Just (System (Ubuntu release) _)) -> ensureProperty $
+
+                        (Just (System (Ubuntu _) _)) -> ensureProperty $
 					"/etc/apt/apt.conf.d/10periodic"
 						`File.hasContent` [
                                                   "APT::Periodic::Update-Package-Lists \"1\";"
