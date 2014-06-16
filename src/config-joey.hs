@@ -21,46 +21,42 @@ import qualified Propellor.Property.Git as Git
 import qualified Propellor.Property.Apache as Apache
 import qualified Propellor.Property.Postfix as Postfix
 import qualified Propellor.Property.Service as Service
+import qualified Propellor.Property.HostingProvider.DigitalOcean as DigitalOcean
+import qualified Propellor.Property.HostingProvider.CloudAtCost as CloudAtCost
 import qualified Propellor.Property.SiteSpecific.GitHome as GitHome
 import qualified Propellor.Property.SiteSpecific.GitAnnexBuilder as GitAnnexBuilder
 import qualified Propellor.Property.SiteSpecific.JoeySites as JoeySites
 
-main :: IO ()
-main = defaultMain hosts
 
-
-                      --     _         ______`|                          ,-.__ 
- {- Propellor          --  /   \___-=O`/|O`/__|                         (____.'
-    Deployed -}         -- \          / | /    )             _.-"-._
-                        --  `/-==__ _/__|/__=-|             (       \_
-hosts :: [Host]        --   *             \ | |              '--------'
-hosts =               --                  (o)  `
+main :: IO ()           --     _         ______`|                       ,-.__ 
+main = defaultMain hosts --  /   \___-=O`/|O`/__|                      (____.'
+  {- Propellor            -- \          / | /    )          _.-"-._
+     Deployed -}          --  `/-==__ _/__|/__=-|          (       \_
+hosts :: [Host]          --   *             \ | |           '--------'
+hosts =                 --                  (o)  `
 	-- My laptop
 	[ host "darkstar.kitenet.net"
 		& ipv6 "2001:4830:1600:187::2" -- sixxs tunnel
-		& Docker.configured
-		& Apt.buildDep ["git-annex"] `period` Daily
 
-	-- Nothing super-important lives here.
+		& Apt.buildDep ["git-annex"] `period` Daily
+		& Docker.configured
+		& Docker.docked hosts "android-git-annex"
+
+	-- Nothing super-important lives here and mostly it's docker containers.
 	, standardSystem "clam.kitenet.net" Unstable "amd64"
 		& ipv4 "162.248.143.249"
 		& ipv6 "2002:5044:5531::1"
 
-		& cleanCloudAtCost
+		& CloudAtCost.decruft
 		& Apt.unattendedUpgrades
 		& Network.ipv6to4
 		& Tor.isBridge
 		& Postfix.satellite
 		& Docker.configured
 
-		& alias "shell.olduse.net"
-		& JoeySites.oldUseNetShellBox
-
-		& alias "openid.kitenet.net"
+		& Docker.docked hosts "oldusenet-shellbox"
 		& Docker.docked hosts "openid-provider"
 		 	`requires` Apt.serviceInstalledRunning "ntp"
-
-		& alias "ancient.kitenet.net"
 		& Docker.docked hosts "ancient-kitenet"
 
 		-- I'd rather this were on diatom, but it needs unstable.
@@ -76,9 +72,15 @@ hosts =               --                  (o)  `
 		& alias "znc.kitenet.net"
 		& JoeySites.ircBouncer
 
-		-- Nothing is using https on clam, so listen on that port
-		-- for ssh, for traveling on bad networks.
-		& "/etc/ssh/sshd_config" `File.containsLine` "Port 443"
+		-- For https port 443, shellinabox with ssh login to
+		-- kitenet.net
+		& alias "shell.kitenet.net"
+		& JoeySites.kiteShellBox
+
+		-- Nothing is using http port 80 on clam, so listen on
+		-- that port for ssh, for traveling on bad networks that
+		-- block 22.
+		& "/etc/ssh/sshd_config" `File.containsLine` "Port 80"
 			`onChange` Service.restarted "ssh"
 
 		& Docker.garbageCollected `period` Daily
@@ -96,6 +98,7 @@ hosts =               --                  (o)  `
 		& Docker.docked hosts "i386-git-annex-builder"
 		& Docker.docked hosts "armel-git-annex-builder-companion"
 		& Docker.docked hosts "armel-git-annex-builder"
+		& Docker.docked hosts "android-git-annex-builder"
 		& Docker.garbageCollected `period` Daily
 		& Apt.buildDep ["git-annex"] `period` Daily
 	
@@ -103,6 +106,7 @@ hosts =               --                  (o)  `
   	, standardSystem "diatom.kitenet.net" Stable "amd64"
 		& ipv4 "107.170.31.195"
 
+		& DigitalOcean.distroKernel
 		& Hostname.sane
 		& Ssh.hostKey SshDsa
 		& Ssh.hostKey SshRsa
@@ -159,6 +163,46 @@ hosts =               --                  (o)  `
 		
 		& Dns.secondaryFor ["animx"] hosts "animx.eu.org"
 
+	-- storage and backup server
+	, standardSystem "elephant.kitenet.net" Unstable "amd64"
+		& ipv4 "193.234.225.114"
+
+		& Hostname.sane
+		& Postfix.satellite
+		& Apt.unattendedUpgrades
+		& Ssh.hostKey SshDsa
+		& Ssh.hostKey SshRsa
+		& Ssh.hostKey SshEcdsa
+		& Ssh.keyImported SshRsa "joey"
+
+		-- PV-grub chaining
+		-- http://notes.pault.ag/linode-pv-grub-chainning/
+		-- (Adapted to use xvda1/hd0,0 instead of xvda/hd0)
+		& "/boot/grub/menu.lst" `File.hasContent`
+			[ "default 1" 
+			, "timeout 30"
+			, ""
+			, "title grub-xen shim"
+			, "root (hd0,0)"
+			, "kernel /boot/xen-shim"
+			, "boot"
+			]
+		& "/boot/load.cf" `File.hasContent`
+			[ "configfile (xen/xvda1)/boot/grub/grub.cfg" ]
+		& Apt.installed ["grub-xen"]
+		& flagFile (scriptProperty ["update-grub; grub-mkimage --prefix '(xen/xvda1)/boot/grub' -c /boot/load.cf -O x86_64-xen /usr/lib/grub/x86_64-xen/*.mod > /boot/xen-shim"]) "/boot/xen-shim"
+
+		& alias "eubackup.kitenet.net"
+		& Apt.installed ["obnam", "sshfs", "rsync"]
+		& JoeySites.githubBackup
+		& JoeySites.obnamRepos ["wren", "pell"]
+		& Ssh.knownHost hosts "usw-s002.rsync.net" "joey"
+
+		& alias "podcatcher.kitenet.net"
+		& Apt.installed ["git-annex"]
+		
+		& Docker.configured
+		& Docker.garbageCollected `period` (Weekly (Just 1))
 
 	    --'                        __|II|      ,.
 	  ----                      __|II|II|__   (  \_,/\
@@ -177,48 +221,46 @@ hosts =               --                  (o)  `
 	-- My own openid provider. Uses php, so containerized for security
 	-- and administrative sanity.
 	, standardContainer "openid-provider" Stable "amd64"
+		& alias "openid.kitenet.net"
 		& Docker.publish "8081:80"
 		& OpenId.providerFor ["joey", "liw"]
 			"openid.kitenet.net:8081"
 
 	-- Exhibit: kite's 90's website.
 	, standardContainer "ancient-kitenet" Stable "amd64"
+		& alias "ancient.kitenet.net"
 		& Docker.publish "1994:80"
 		& Apt.serviceInstalledRunning "apache2"
 		& Git.cloned "root" "git://kitenet-net.branchable.com/" "/var/www"
 			(Just "remotes/origin/old-kitenet.net")
 	
-	-- git-annex autobuilder containers
-	, gitAnnexBuilder "amd64" 15
-	, gitAnnexBuilder "i386" 45
-	-- armel builder has a companion container that run amd64 and
-	-- runs the build first to get TH splices. They share a home
-	-- directory, and need to have the same versions of all haskell
-	-- libraries installed.
-	, Docker.container "armel-git-annex-builder-companion"
-		(image $ System (Debian Unstable) "amd64")
-		& Docker.volume GitAnnexBuilder.homedir
-		& Apt.unattendedUpgrades
-	, Docker.container "armel-git-annex-builder"
-		(image $ System (Debian Unstable) "armel")
-		& Docker.link "armel-git-annex-builder-companion" "companion"
-		& Docker.volumes_from "armel-git-annex-builder-companion"
---		& GitAnnexBuilder.builder "armel" "15 * * * *" True
-		& Apt.unattendedUpgrades
-	] ++ monsters
+	, standardContainer "oldusenet-shellbox" Stable "amd64"
+		& alias "shell.olduse.net"
+		& Docker.publish "4200:4200"
+		& JoeySites.oldUseNetShellBox
 
-gitAnnexBuilder :: Architecture -> Int -> Host
-gitAnnexBuilder arch buildminute = Docker.container (arch ++ "-git-annex-builder")
-	(image $ System (Debian Unstable) arch)
-	& GitAnnexBuilder.builder arch (show buildminute ++ " * * * *") True
-	& Apt.unattendedUpgrades
+	-- git-annex autobuilder containers
+	, GitAnnexBuilder.standardAutoBuilderContainer dockerImage "amd64" 15 "2h"
+	, GitAnnexBuilder.standardAutoBuilderContainer dockerImage "i386" 45 "2h"
+	, GitAnnexBuilder.armelCompanionContainer dockerImage
+	, GitAnnexBuilder.armelAutoBuilderContainer dockerImage "1 3 * * *" "5h"
+	, GitAnnexBuilder.androidAutoBuilderContainer dockerImage "1 1 * * *" "3h"
+
+	-- for development of git-annex for android, using my git-annex
+	-- work tree
+	, let gitannexdir = GitAnnexBuilder.homedir </> "git-annex"
+	  in GitAnnexBuilder.androidContainer dockerImage "android-git-annex" doNothing gitannexdir
+		& Docker.volume ("/home/joey/src/git-annex:" ++ gitannexdir)
+
+	-- temp for an acquantance
+	] ++ monsters
 
 -- This is my standard system setup.
 standardSystem :: HostName -> DebianSuite -> Architecture -> Host
 standardSystem hn suite arch = host hn
 	& os (System (Debian suite) arch)
-	& Apt.stdSourcesList suite
-		`onChange` Apt.upgrade
+	& Apt.stdSourcesList `onChange` Apt.upgrade
+	& Apt.cacheCleaned
 	& Apt.installed ["etckeeper"]
 	& Apt.installed ["ssh"]
 	& GitHome.installedFor "root"
@@ -239,50 +281,21 @@ standardSystem hn suite arch = host hn
 
 -- This is my standard container setup, featuring automatic upgrades.
 standardContainer :: Docker.ContainerName -> DebianSuite -> Architecture -> Host
-standardContainer name suite arch = Docker.container name (image system)
-	& os (System (Debian suite) arch)
-	& Apt.stdSourcesList suite
+standardContainer name suite arch = Docker.container name (dockerImage system)
+	& os system
+	& Apt.stdSourcesList `onChange` Apt.upgrade
+	& Apt.installed ["systemd"]
 	& Apt.unattendedUpgrades
+	& Apt.cacheCleaned
   where
 	system = System (Debian suite) arch
 
 -- Docker images I prefer to use.
-image :: System -> Docker.Image
-image (System (Debian Unstable) arch) = "joeyh/debian-unstable-" ++ arch
-image (System (Debian Stable) arch) = "joeyh/debian-stable-" ++ arch
-image _ = "debian-stable-official" -- does not currently exist!
-
--- Digital Ocean does not provide any way to boot
--- the kernel provided by the distribution, except using kexec.
--- Without this, some old, and perhaps insecure kernel will be used.
---
--- Note that this only causes the new kernel to be loaded on reboot.
--- If the power is cycled, the old kernel still boots up.
--- TODO: detect this and reboot immediately?
-digitalOceanDistroKernel :: Property
-digitalOceanDistroKernel = propertyList "digital ocean distro kernel hack"
-	[ Apt.installed ["grub-pc", "kexec-tools"]
-	, "/etc/default/kexec" `File.containsLines`
-		[ "LOAD_KEXEC=true"
-		, "USE_GRUB_CONFIG=true"
-		]
-	]
-
--- Clean up a system as installed by cloudatcost.com
-cleanCloudAtCost :: Property
-cleanCloudAtCost = propertyList "cloudatcost cleanup"
-	[ Hostname.sane
-	, Ssh.randomHostKeys
-	, "worked around grub/lvm boot bug #743126" ==>
-		"/etc/default/grub" `File.containsLine` "GRUB_DISABLE_LINUX_UUID=true"
-		`onChange` cmdProperty "update-grub" []
-		`onChange` cmdProperty "update-initramfs" ["-u"]
-	, combineProperties "nuked cloudatcost cruft"
-		[ File.notPresent "/etc/rc.local"
-		, File.notPresent "/etc/init.d/S97-setup.sh"
-		, User.nuked "user" User.YesReallyDeleteHome
-		]
-	]
+dockerImage :: System -> Docker.Image
+dockerImage (System (Debian Unstable) arch) = "joeyh/debian-unstable-" ++ arch
+dockerImage (System (Debian Testing) arch) = "joeyh/debian-unstable-" ++ arch
+dockerImage (System (Debian Stable) arch) = "joeyh/debian-stable-" ++ arch
+dockerImage _ = "debian-stable-official" -- does not currently exist!
 
 myDnsSecondary :: Property
 myDnsSecondary = propertyList "dns secondary for all my domains" $ map toProp
@@ -347,9 +360,33 @@ monsters =	      -- but do want to track their public keys etc.
 		& alias "wortroot.kitenet.net"
 		& alias "www.wortroot.kitenet.net"
 		& alias "joey.kitenet.net"
-		& alias "annex.kitenet.net"
-		& alias "ipv6.kitenet.net"
+		& alias "anna.kitenet.net"
 		& alias "bitlbee.kitenet.net"
+		{- Remaining services on kite:
+		 - 
+		 - mail
+		 -   postfix
+		 -   postgrey
+		 -   mailman
+		 -   spamassassin
+		 -   sqwebmail
+		 -   courier
+		 -     imap
+		 -     tls
+		 - apache
+		 -   some static websites
+		 - bitlbee
+		 - prosody
+		 -   (used by anna and daddy's git-annex)
+		 - named
+		 -   (branchable is still pushing to here
+		 -    (thinking it's ns2.branchable.com), but it's no
+		 -   longer a primary or secondary for anything)
+		 - ftpd (EOL)
+		 -
+		 - user shell stuff:
+		 -   pine, zsh, make, git-annex, myrepos, ...
+		 -}
 	, host "mouse.kitenet.net"
 		& ipv6 "2001:4830:1600:492::2"
 	, host "beaver.kitenet.net"

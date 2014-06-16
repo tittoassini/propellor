@@ -38,8 +38,12 @@ data NumClients = OnlyClient | MultipleClients
 --
 -- How awesome is that?
 backup :: FilePath -> Cron.CronTimes -> [ObnamParam] -> NumClients -> Property
-backup dir crontimes params numclients = cronjob `describe` desc
+backup dir crontimes params numclients = backup' dir crontimes params numclients
 	`requires` restored dir params
+
+-- | Does a backup, but does not automatically restore.
+backup' :: FilePath -> Cron.CronTimes -> [ObnamParam] -> NumClients -> Property
+backup' dir crontimes params numclients = cronjob `describe` desc
   where
 	desc = dir ++ " backed up by obnam"
 	cronjob = Cron.niceJob ("obnam_backup" ++ dir) crontimes "root" "/" $
@@ -101,12 +105,12 @@ installed = Apt.installed ["obnam"]
 latestVersion :: Property
 latestVersion = withOS "obnam latest version" $ \o -> case o of
 	(Just (System (Debian suite) _)) | isStable suite -> ensureProperty $
-		Apt.setSourcesListD (sources suite) "obnam"
+		Apt.setSourcesListD stablesources "obnam"
 			`requires` toProp (Apt.trustsKey key)
 	_ -> noChange
   where
-	sources suite = 
-		[ "deb http://code.liw.fi/debian " ++ Apt.showSuite suite ++ " main"
+	stablesources = 
+		[ "deb http://code.liw.fi/debian " ++ Apt.showSuite stableRelease ++ " main"
 		]
 	-- gpg key used by the code.liw.fi repository.
 	key = Apt.AptKey "obnam" $ unlines

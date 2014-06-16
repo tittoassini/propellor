@@ -23,8 +23,9 @@ main = defaultMain hosts
 -- Edit this to configure propellor!
 hosts :: [Host]
 hosts =
-	[ host "nano.quid2.org"
-		& Apt.stdSourcesList Unstable
+	[ host "mybox.example.com"
+		& os (System (Debian Unstable) "amd64")
+		& Apt.stdSourcesList
 		& Apt.unattendedUpgrades
 		& Apt.installed ["etckeeper"]
 		& Apt.installed ["ssh"]
@@ -36,7 +37,9 @@ hosts =
 		& Cron.runPropellor "30 * * * *"
 
 	-- A generic webserver in a Docker container.
-	, Docker.container "webserver" "joeyh/debian-unstable"
+	, Docker.container "webserver" "joeyh/debian-stable"
+		& os (System (Debian Stable) "amd64")
+		& Apt.stdSourcesList
 		& Docker.publish "80:80"
 		& Docker.volume "/var/www:/var/www"
 		& Apt.serviceInstalledRunning "apache2"

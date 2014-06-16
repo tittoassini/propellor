@@ -1,8 +1,37 @@
-propellor (0.5.3) UNRELEASED; urgency=medium
+propellor (0.7.0) unstable; urgency=medium
+
+  * combineProperties no longer stops when a property fails; now it continues
+    trying to satisfy all properties on the list before propigating the
+    failure.
+  * Attr is renamed to Info.
+  * Renamed wrapper to propellor to make cabal installation of propellor work.
+  * When git gpg signature of a fetched git branch cannot be verified,
+    propellor will now continue running, but without merging in that branch.
+
+ -- Joey Hess <joeyh@debian.org>  Fri, 13 Jun 2014 10:06:40 -0400
+
+propellor (0.6.0) unstable; urgency=medium
+
+  * Docker containers now propagate DNS attributes out to the host they're
+    docked in. So if a docker container sets a DNS alias, every container
+    it's docked in will automatically be added to a DNS round-robin,
+    when propellor is used to manage DNS for the domain.
+  * Apt.stdSourcesList no longer needs a suite to be specified.
+  * Added --dump to dump out a field of a host's privdata. Useful for editing
+    it.
+  * Propellor's output now includes the hostname being provisioned, or
+    when provisioning a docker container, the container name.
+
+ -- Joey Hess <joeyh@debian.org>  Thu, 05 Jun 2014 17:32:14 -0400
+
+propellor (0.5.3) unstable; urgency=medium
 
   * Fix unattended-upgrades config for !stable.
+  * Ensure that kernel hostname is same as /etc/hostname when configuring
+    hostname.
+  * Added modules for some hosting providers (DigitalOcean, CloudAtCost).
 
- -- Joey Hess <joeyh@debian.org>  Sun, 18 May 2014 13:44:00 -0400
+ -- Joey Hess <joeyh@debian.org>  Thu, 29 May 2014 14:29:53 -0400
 
 propellor (0.5.2) unstable; urgency=medium
 

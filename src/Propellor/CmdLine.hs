@@ -27,6 +27,7 @@ usage = do
 		, "  propellor hostname"
 		, "  propellor --spin hostname"
 		, "  propellor --set hostname field"
+		, "  propellor --dump hostname field"
 		, "  propellor --add-key keyid"
 		]
 	exitFailure
@@ -38,9 +39,8 @@ processCmdLine = go =<< getArgs
   	go ("--spin":h:[]) = return $ Spin h
   	go ("--boot":h:[]) = return $ Boot h
 	go ("--add-key":k:[]) = return $ AddKey k
-	go ("--set":h:f:[]) = case readish f of
-		Just pf -> return $ Set h pf
-		Nothing -> errorMessage $ "Unknown privdata field " ++ f
+	go ("--set":h:f:[]) = withprivfield f (return . Set h)
+	go ("--dump":h:f:[]) = withprivfield f (return . Dump h)
 	go ("--continue":s:[]) = case readish s of
 		Just cmdline -> return $ Continue cmdline
 		Nothing -> errorMessage "--continue serialization failure"
@@ -56,6 +56,10 @@ processCmdLine = go =<< getArgs
 			else return $ Run s
 	go _ = usage
 
+	withprivfield s f = case readish s of
+		Just pf -> f pf
+		Nothing -> errorMessage $ "Unknown privdata field " ++ s
+
 defaultMain :: [Host] -> IO ()
 defaultMain hostlist = do
 	DockerShim.cleanEnv
@@ -66,25 +70,23 @@ defaultMain hostlist = do
   where
 	go _ (Continue cmdline) = go False cmdline
 	go _ (Set hn field) = setPrivData hn field
+	go _ (Dump hn field) = dumpPrivData hn field
 	go _ (AddKey keyid) = addKey keyid
-	go _ (Chain hn) = withprops hn $ \attr ps -> do
-		r <- runPropellor attr $ ensureProperties ps
+	go _ (Chain hn) = withhost hn $ \h -> do
+		r <- runPropellor h $ ensureProperties $ hostProperties h
 		putStrLn $ "\n" ++ show r
 	go _ (Docker hn) = Docker.chain hn
 	go True cmdline@(Spin _) = buildFirst cmdline $ go False cmdline
 	go True cmdline = updateFirst cmdline $ go False cmdline
-	go False (Spin hn) = withprops hn $ const . const $ spin hn
+	go False (Spin hn) = withhost hn $ const $ spin hn
 	go False (Run hn) = ifM ((==) 0 <$> getRealUserID)
-		( onlyProcess $ withprops hn mainProperties
+		( onlyProcess $ withhost hn mainProperties
 		, go True (Spin hn)
 		)
-	go False (Boot hn) = onlyProcess $ withprops hn boot
+	go False (Boot hn) = onlyProcess $ withhost hn boot
 
-	withprops :: HostName -> (Attr -> [Property] -> IO ()) -> IO ()
-	withprops hn a = maybe
-		(unknownhost hn)
-		(\h -> a (hostAttr h) (hostProperties h))
-		(findHost hostlist hn)
+	withhost :: HostName -> (Host -> IO ()) -> IO ()
+	withhost hn a = maybe (unknownhost hn) a (findHost hostlist hn)
 
 onlyProcess :: IO a -> IO a
 onlyProcess a = bracket lock unlock (const a)
@@ -130,6 +132,8 @@ updateFirst cmdline next = do
 
 	void $ actionMessage "Git fetch" $ boolSystem "git" [Param "fetch"]
 	
+	oldsha <- getCurrentGitSha1 branchref
+	
 	whenM (doesFileExist keyring) $ do
 		{- To verify origin branch commit's signature, have to
 		 - convince gpg to use our keyring. While running git log.
@@ -151,10 +155,9 @@ updateFirst cmdline next = do
 			then do
 				putStrLn $ "git branch " ++ originbranch ++ " gpg signature verified; merging"
 				hFlush stdout
-			else errorMessage $ "git branch " ++ originbranch ++ " is not signed with a trusted gpg key; refusing to deploy it!"
+				void $ boolSystem "git" [Param "merge", Param originbranch]
+			else warningMessage $ "git branch " ++ originbranch ++ " is not signed with a trusted gpg key; refusing to deploy it! (Running with previous configuration instead.)"
 	
-	oldsha <- getCurrentGitSha1 branchref
-	void $ boolSystem "git" [Param "merge", Param originbranch]
 	newsha <- getCurrentGitSha1 branchref
 
 	if oldsha == newsha
@@ -279,15 +282,15 @@ fromMarked marker s
 	len = length marker
 	matches = filter (marker `isPrefixOf`) $ lines s
 
-boot :: Attr -> [Property] -> IO ()
-boot attr ps = do
+boot :: Host -> IO ()
+boot h = do
 	sendMarked stdout statusMarker $ show Ready
 	reply <- hGetContentsStrict stdin
 
 	makePrivDataDir
 	maybe noop (writeFileProtected privDataLocal) $
 		fromMarked privDataMarker reply
-	mainProperties attr ps
+	mainProperties h
 
 addKey :: String -> IO ()
 addKey keyid = exitBool =<< allM id [ gpg, gitadd, gitconfig, gitcommit ]

@@ -141,7 +141,10 @@ gitServer hosts = propertyList "git.kitenet.net setup"
 		`requires` Ssh.knownHost hosts "usw-s002.rsync.net" "root"
 		`requires` Ssh.authorizedKeys "family"
 		`requires` User.accountFor "family"
-	, Apt.installed ["git", "rsync", "kgb-client-git", "gitweb"]
+	, Apt.installed ["git", "rsync", "gitweb"]
+	-- backport avoids channel flooding on branch merge
+	, Apt.installedBackport ["kgb-client"]
+	-- backport supports ssh event notification
 	, Apt.installedBackport ["git-annex"]
 	, File.hasPrivContentExposed "/etc/kgb-bot/kgb-client.conf"
 	, toProp $ Git.daemonRunning "/srv/git"
@@ -264,9 +267,11 @@ gitAnnexDistributor :: Property
 gitAnnexDistributor = combineProperties "git-annex distributor, including rsync server and signer"
 	[ Apt.installed ["rsync"]
 	, File.hasPrivContent "/etc/rsyncd.conf"
+		`onChange` Service.restarted "rsync"
 	, File.hasPrivContent "/etc/rsyncd.secrets"
+		`onChange` Service.restarted "rsync"
 	, "/etc/default/rsync" `File.containsLine` "RSYNC_ENABLE=true"
-			`onChange` Service.running "rsync"
+		`onChange` Service.running "rsync"
 	, endpoint "/srv/web/downloads.kitenet.net/git-annex/autobuild"
 	, endpoint "/srv/web/downloads.kitenet.net/git-annex/autobuild/x86_64-apple-mavericks"
 	-- git-annex distribution signing key
@@ -312,3 +317,35 @@ ircBouncer = propertyList "IRC bouncer"
 	]
   where
 	conf = "/home/znc/.znc/configs/znc.conf"
+
+kiteShellBox :: Property
+kiteShellBox = propertyList "kitenet.net shellinabox"
+	[ Apt.installed ["shellinabox"]
+	, File.hasContent "/etc/default/shellinabox"
+		[ "# Deployed by propellor"
+		, "SHELLINABOX_DAEMON_START=1"
+		, "SHELLINABOX_PORT=443"
+		, "SHELLINABOX_ARGS=\"--no-beep --service=/:SSH:kitenet.net\""
+		]
+		`onChange` Service.restarted "shellinabox"
+	, Service.running "shellinabox"
+	]
+
+githubBackup :: Property
+githubBackup = propertyList "github-backup box"
+	[ Apt.installed ["github-backup", "moreutils"]
+	, let f = "/home/joey/.github-keys"
+	  in File.hasPrivContent f
+		`onChange` File.ownerGroup f "joey" "joey"
+	]
+
+obnamRepos :: [String] -> Property
+obnamRepos rs = propertyList ("obnam repos for " ++ unwords rs)
+	(mkbase : map mkrepo rs)
+  where
+  	mkbase = mkdir "/home/joey/lib/backup"
+		`requires` mkdir "/home/joey/lib"
+	mkrepo r = mkdir ("/home/joey/lib/backup/" ++ r ++ ".obnam")
+	mkdir d = File.dirExists d
+		`before` File.ownerGroup d "joey" "joey"
+

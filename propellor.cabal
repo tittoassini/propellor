@@ -1,7 +1,7 @@
 Name: propellor
-Version: 0.5.2.11
+Version: 0.7.0.11
 Cabal-Version: >= 1.6
-License: BSD
+License: BSD3
 Maintainer: Joey Hess <joey@kitenet.net>
 Author: Joey Hess
 Stability: Stable
@@ -33,9 +33,9 @@ Description:
  .
  It is configured using haskell.
 
-Executable wrapper
+Executable propellor
   Main-Is: wrapper.hs
-  GHC-Options: -Wall -threaded
+  GHC-Options: -Wall -threaded -O0
   Hs-Source-Dirs:  src
   Build-Depends: MissingH, directory, filepath, base >= 4.5, base < 5, 
    IfElse, process, bytestring, hslogger, unix-compat, ansi-terminal,
@@ -45,10 +45,9 @@ Executable wrapper
   if (! os(windows))
     Build-Depends: unix
 
-Executable config
+Executable propellor-config
   Main-Is: config.hs
-  Hs-Source-Dirs:  src
-  GHC-Options: -Wall -threaded
+  GHC-Options: -Wall -threaded -O0
   Hs-Source-Dirs:  src
   Build-Depends: MissingH, directory, filepath, base >= 4.5, base < 5, 
    IfElse, process, bytestring, hslogger, unix-compat, ansi-terminal,
@@ -59,7 +58,7 @@ Executable config
     Build-Depends: unix
 
 Library
-  GHC-Options: -Wall
+  GHC-Options: -Wall -O0
   Hs-Source-Dirs:  src
   Build-Depends: MissingH, directory, filepath, base >= 4.5, base < 5, 
    IfElse, process, bytestring, hslogger, unix-compat, ansi-terminal,
@@ -93,10 +92,12 @@ Library
     Propellor.Property.Sudo
     Propellor.Property.Tor
     Propellor.Property.User
+    Propellor.Property.HostingProvider.DigitalOcean
+    Propellor.Property.HostingProvider.CloudAtCost
     Propellor.Property.SiteSpecific.GitHome
     Propellor.Property.SiteSpecific.JoeySites
     Propellor.Property.SiteSpecific.GitAnnexBuilder
-    Propellor.Attr
+    Propellor.Info
     Propellor.Message
     Propellor.PrivData
     Propellor.Engine
@@ -105,7 +106,7 @@ Library
     Propellor.Types.OS
     Propellor.Types.Dns
   Other-Modules:
-    Propellor.Types.Attr
+    Propellor.Types.Info
     Propellor.CmdLine
     Propellor.SimpleSh
     Propellor.Property.Docker.Shim

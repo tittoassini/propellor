@@ -13,7 +13,6 @@ import Control.Monad
 import "mtl" Control.Monad.Reader
 
 import Propellor.Types
-import Propellor.Attr
 import Propellor.Message
 import Utility.Monad
 import Utility.PartialPrelude
@@ -30,7 +29,7 @@ withPrivData :: PrivDataField -> (String -> Propellor Result) -> Propellor Resul
 withPrivData field a = maybe missing a =<< liftIO (getPrivData field)
   where
 	missing = do
-		host <- getHostName
+		host <- asks hostName
 		let host' = if ".docker" `isSuffixOf` host
 			then "$parent_host"
 			else host
@@ -50,7 +49,7 @@ setPrivData host field = do
 	value <- chomp <$> hGetContentsStrict stdin
 	makePrivDataDir
 	let f = privDataFile host
-	m <- fromMaybe M.empty . readish <$> gpgDecrypt f
+	m <- decryptPrivData host
 	let m' = M.insert field value m
 	gpgEncrypt f (show m')
 	putStrLn "Private data set."
@@ -59,6 +58,16 @@ setPrivData host field = do
 	chomp s
 		| end s == "\n" = chomp (beginning s)
 		| otherwise = s
+
+dumpPrivData :: HostName -> PrivDataField -> IO ()
+dumpPrivData host field = go . M.lookup field =<< decryptPrivData host
+  where
+	go Nothing = error "Requested privdata is not set."
+	go (Just s) = putStrLn s
+
+decryptPrivData :: HostName -> IO (M.Map PrivDataField String)
+decryptPrivData host = fromMaybe M.empty . readish
+	<$> gpgDecrypt (privDataFile host)
 
 makePrivDataDir :: IO ()
 makePrivDataDir = createDirectoryIfMissing False privDataDir
