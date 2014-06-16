@@ -59,7 +59,7 @@ hosts =
           & cabalUpdate          
           & quid2CheckService
 -}
-          & quid2TittoService -- BUG: fails to start
+          & quid2TittoService -- BUG: fails to start unless is already running
 
           {-
 * deploy propellor: PROB: Unable to locate package libghc-async-dev
@@ -102,7 +102,7 @@ hosts =
 
 quid2TittoService = background "quid2-titto" `requires` quid2TittoPkg
 
-background name = userScriptProperty "root" [unwords ["killall -s SIGKILL",name,";true"]
+background name = userScriptProperty "root" [unwords ["killall -s SIGKILL",name]
                                             ,unwords ["/root/.cabal/bin/"++name,"> /dev/null 2>&1 &"]
                                             ]
 
