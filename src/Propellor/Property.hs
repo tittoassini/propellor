@@ -79,7 +79,7 @@ p `onChange` hook = Property (propertyDesc p) satisfy (combineInfo p hook)
 			_ -> return r
 
 onNoChange :: Property -> Property -> Property
-p `onNoChange` hook = Property (propertyDesc p) satisfy (combineSetAttr p hook)
+p `onNoChange` hook = Property (propertyDesc p) satisfy (combineInfo p hook)
   where
 	satisfy = do
 		r <- ensureProperty p
