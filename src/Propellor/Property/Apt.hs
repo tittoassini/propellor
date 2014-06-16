@@ -221,6 +221,7 @@ unattendedUpgrades = RevertableProperty enable disable
 					"/etc/apt/apt.conf.d/50unattended-upgrades"
 						`File.containsLine`
 					("Unattended-Upgrade::Origins-Pattern { \"o=Debian,a="++showSuite suite++"\"; };")
+                        os -> error (show os)
                         (Just (System (Ubuntu release) _)) -> ensureProperty $
 					"/etc/apt/apt.conf.d/10periodic"
 						`File.hasContent` [
