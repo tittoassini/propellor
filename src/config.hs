@@ -20,11 +20,12 @@ import qualified Propellor.Property.Docker as Docker
 import qualified Propellor.Property.Git as Git
 
 {-
-Propellor:
-
+Run Propellor:
 cd ~/.propellor;./propellor --spin 188.165.202.170
 
 cd ~/.propellor;./propellor --spin nano.quid2.org
+
+Add secret properties to server's privdata
 propellor --set nano.quid2.org 'Password "quidagent@gmail.com"'
 propellor --set nano.quid2.org 'SshPubKey SshRsa ""'
 propellor --set nano.quid2.org 'SshPrivKey SshRsa ""'
@@ -32,9 +33,14 @@ propellor --set nano.quid2.org 'SshPrivKey SshRsa ""'
 propellor --set nano.quid2.org 'SshPubKey SshRsa "root"'
 propellor --set nano.quid2.org 'SshPrivKey SshRsa "root"'
 
-propellor --set nano.quid2.org 'SshAuthorizedKeys "root"'
+---------- New Server
+-- Add titto's public key to 
+cd ~/.propellor;./propellor
+
+propellor --set 188.165.202.170 'SshAuthorizedKeys "root"'
 
 ssh-dss AAAAB3NzaC1kc3MAAACBALwa1J9HDpcRkMpliV3QnYPN5GDuasBdM1s+RpZ3v82PYyOxqVn+Vt79VYuyTc7TK8KnvsNDVnfFETHy3IxY772YRR8X+T2Wt1tcFBednPf5bIPafX1DhKPXTywG8Q4xriidzHZLlj3eyXWeCElxNk4c4d+NIWK7M3iJDCOphQeFAAAAFQCPaYqOr09/d/2taJmWlZvTP7xYEwAAAIBbyd/CjHf8zw0W1dNsZO0VXwieAPa/tAkCAxeWCsDxSyfeasXDtciJZEPAq6U4H67b3lHwU0afJw1NycfirP0hYsT2Icwg1KXhCD6zDaeswWidhLPII8Cz5vqfXDobIZF17bODh1WHUtuwLxwA4z6FiBU8EMkeDdm28R5fe0QemAAAAIB2dI4oruRoPpxJmC3ETVdT3zBp73eGr9nL8IU4i+uOuJGtb1nOCcJYQxSw/1qnEGIN/PBlR4tufV6KiBCPXcrl1GhhQ9oVUJBZyZrM29HDe9VZ3WCZ6usmNRnTEnq593O0189dv4XRZQkSts5f/hdRg/kToyqaG+egBerA9AfsrA== titto@ubuntu
+
 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDYlRxBBfWKQWtemEORJLeP6InDRS9x7PvrEaPTCFW/uyneMhs7Ug9xDt/xdq9AIJeGlQxmAAHabIRvoTzAmgI4/c9PXB337BkpF4oPt7tpGJZN3FfyeOM33ShnFyIG0HswwXj8XSQ5K8DGQiClg7wP06ez3jyW+4z0FaXFrD3PKF0ANhjfPjq9wWJi/xZs4sEV4SPnlUNGn2ofAKkDBepdc9igvIZb/TY1UIhZouiPCHICnM6x/UgPuyx+v0zIrpJJs0Hosu2f6Te9rwjdYGPccQRmUG7LXKJXPSyxu9txQT7frwm1PA+NVb8KR4qsH51qqufzshqOyBk3+51KlL1v
 ssh-dss AAAAB3NzaC1kc3MAAACBAOeVvbO508J4MKyixDHYjxlBsuMhRZL2cEMB1a3okXtMJCjh3Rml4EgKzG6gRLV9mNtA0eyN0GYbwXk6omCKeL+YA2vKrm6Ba4dmhLrdf97y6r6xxj6Gp0FRcmGbOT3TJBm36Z1RKPZermYsVrP/xaz9IVO/gluMPeKtj10UMS2rAAAAFQCaqFbe+CmgSlNjUgEcy0t0SyOkmQAAAIEAzd+lg6TPPU+0I8pLI7tdDZSA7Otp3T1UdRd4oMK1kJSBVAYDaTsEZ/WLTyzHFZyafI8fL1fLsrj5qJkuph5rnxBaYxfwF2MQzjEVOkob/lS0puUVcfceZ8qKbZ8hd6JYms2CmOCmWQ/wtUzzEWMqxf9WcY4MnJQ+ZWpKaR+AWtEAAACAFsQM8hqf4NrBkjW2DAGfPHNNPC3Dgzb4vxYwgsw85ai59yTCBnVPtUFWDYmLI+PJhaAcrJlNY1tSzJkEyeDlhMQXH4+/wsdv7PknaStMrjb4z3B7N/dED4rioROsW2l0Wg2MuxQdbH5m9Y/3HGBuGIg6/UECCH6U6OqvMUpcujI= root@ns3296048.ip-5-135-189.eu
 -}
@@ -66,13 +72,12 @@ hosts =
           ,host "188.165.202.170"
           -- & sshPubKey "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC/h5q0pshKWDldX+vk2pFo/JdfcgrCBt73R7h/pThvyXshBGKYCB+X3dsT1ew895A9tSUIbwC7yCjXClPFfva++a7SA9D8qEWtoWuhm3KUqsGnA/5RhiyYl5WODt005xzksGUaRSTggc++0jegtDsNKADpqEY8c74ffg09C1mWGBKgJE+OCYSEpWsQ+KDpbwyyZvaUiVIDt11XfM7zwwidbgOtTO3+cohE/EkkgR47YD/OEdtcgTzemEy6Z/zdLa2uQeiCgVauSPTmJR9FKD76etaiFDTeHkLdpuCPO3NhDKR1cobRYReyatQLa3lCWdQWCUNx0AUX6vBWf7VbAX0V"
           -- Authorize access from root@raspberry 
-          -- & Ssh.authorizedKeys "root"
+          & Ssh.authorizedKeys "root"
           -- Setup ssh key for 'root' user 
           -- & Ssh.keyImported SshRsa "root"
-          -- && Ssh.passwordAuthentication True
+          & Ssh.passwordAuthentication True
           & Apt.unattendedUpgrades
-          & Apt.installed ["emacs24"]
-           
+          & Apt.installed ["emacs24"]      
           -- & cabalUpdate          
           -- & quid2CheckService
           -- & quid2TittoService -- BUG: fails to start unless is already running
