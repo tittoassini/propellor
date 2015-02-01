@@ -39,7 +39,7 @@ Executable propellor
   Hs-Source-Dirs:  src
   Build-Depends: MissingH, directory, filepath, base >= 4.5, base < 5, 
    IfElse, process, bytestring, hslogger, unix-compat, ansi-terminal,
-   containers, network==2.4.*, async, time, QuickCheck, mtl,
+   containers, network>=2.4, async, time, QuickCheck, mtl,
    MonadCatchIO-transformers
   
   if (! os(windows))

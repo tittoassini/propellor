@@ -22,6 +22,8 @@ import qualified Propellor.Property.Git as Git
 {-
 Propellor:
 
+cd ~/.propellor;./propellor --spin 188.165.202.170
+
 cd ~/.propellor;./propellor --spin nano.quid2.org
 propellor --set nano.quid2.org 'Password "quidagent@gmail.com"'
 propellor --set nano.quid2.org 'SshPubKey SshRsa ""'
@@ -59,6 +61,23 @@ hosts =
           & quid2CheckService
           & quid2TittoService -- BUG: fails to start unless is already running
 
+
+          -- Initial setup
+          ,host "188.165.202.170"
+          -- & sshPubKey "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC/h5q0pshKWDldX+vk2pFo/JdfcgrCBt73R7h/pThvyXshBGKYCB+X3dsT1ew895A9tSUIbwC7yCjXClPFfva++a7SA9D8qEWtoWuhm3KUqsGnA/5RhiyYl5WODt005xzksGUaRSTggc++0jegtDsNKADpqEY8c74ffg09C1mWGBKgJE+OCYSEpWsQ+KDpbwyyZvaUiVIDt11XfM7zwwidbgOtTO3+cohE/EkkgR47YD/OEdtcgTzemEy6Z/zdLa2uQeiCgVauSPTmJR9FKD76etaiFDTeHkLdpuCPO3NhDKR1cobRYReyatQLa3lCWdQWCUNx0AUX6vBWf7VbAX0V"
+          -- Authorize access from root@raspberry 
+          -- & Ssh.authorizedKeys "root"
+          -- Setup ssh key for 'root' user 
+          -- & Ssh.keyImported SshRsa "root"
+          -- && Ssh.passwordAuthentication True
+          & Apt.unattendedUpgrades
+          & Apt.installed ["emacs24"]
+           
+          -- & cabalUpdate          
+          -- & quid2CheckService
+          -- & quid2TittoService -- BUG: fails to start unless is already running
+
+          
           {-
 * deploy propellor: PROB: Unable to locate package libghc-async-dev
 * Add crontab jobs
@@ -79,6 +98,7 @@ hosts =
          & alias "backup.quid2.org"
          & sshPubKey "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDYlRxBBfWKQWtemEORJLeP6InDRS9x7PvrEaPTCFW/uyneMhs7Ug9xDt/xdq9AIJeGlQxmAAHabIRvoTzAmgI4/c9PXB337BkpF4oPt7tpGJZN3FfyeOM33ShnFyIG0HswwXj8XSQ5K8DGQiClg7wP06ez3jyW+4z0FaXFrD3PKF0ANhjfPjq9wWJi/xZs4sEV4SPnlUNGn2ofAKkDBepdc9igvIZb/TY1UIhZouiPCHICnM6x/UgPuyx+v0zIrpJJs0Hosu2f6Te9rwjdYGPccQRmUG7LXKJXPSyxu9txQT7frwm1PA+NVb8KR4qsH51qqufzshqOyBk3+51KlL1v"
          & Ssh.knownHost hosts "nano.quid2.org" "root"
+         -- make second backup copy 
          & Cron.job "rsync-backup" "*/30 * * * *" "root" "/root"
          "rsync -avz --progress --delete /home/backup root@nano.quid2.org:/home"
 
@@ -101,7 +121,7 @@ hosts =
 quid2TittoService = background "quid2-titto" `requires` quid2TittoPkg
 
 background name = userScriptProperty "root" [unwords ["killall -s SIGKILL",name]
-                                            ,unwords ["/root/.cabal/bin/"++name,"> /dev/null 2>&1 &"]
+                                            ,unwords ["/root/.cabal/bin/"++name,"> /dev/null 2>&1 & "]
                                             ]
 
 service name = userScriptProperty "root" [concat ["/root/.cabal/bin/",name," stop"],concat ["/root/.cabal/bin/",name," start"]]
