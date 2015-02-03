@@ -135,6 +135,7 @@ failOvers_ = concatMap fo . zip [0..]
                        ,u ["iface",i,"inet static"]
                        ,u ["    address",ip]
                        ,   "    netmask 255.255.255.255"
+                           -- broadcast failoverIP?
                        ,""
                        ,"iface eth0 inet static"
                        ,u ["    post-up /sbin/ifconfig",i,ip,"netmask 255.255.255.255 broadcast",ip]
