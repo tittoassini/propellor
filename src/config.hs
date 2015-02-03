@@ -1,5 +1,6 @@
 -- This is the main configuration file for Propellor, and is used to build
 -- the propellor program.
+module Main where
 
 import Propellor
 import Propellor.CmdLine
@@ -122,17 +123,24 @@ hosts =
         ,host "[quid2.org]:3000" & sshPubKey "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC1OPNMhPyVdSUcwP47qxtjn+ZXlT2de6vXNeRVVP1fTbyh/DBkoH1zUTM5RdStPSRtYXjP0C+eN/xAAOHaYXIoIYyjLR5ZLqOOgyqQ6ghv5Rs7vQJ6FqyFBLcKXdeBhjVcTnwGKejK+cM7MicWzINJkpdh4/AEuv4zlc8QS1wH9lMTYV2H/BhyMx1YV4DzDgpTmEfJIecOnS0r0U2VjjA4HNGxnjvx5X9J+l9vluo2uu5XeuPY9jC5zW7nPjwtTYsHwpsx14BudDYIcgcph7bjvqvSnA1YwgU5A3NefifCrA+kVpd/9kWAx+CnezFk4P1JaBvEd6eUAhMjl9OpZXXh"
 	]
 
-failOvers ips = File.containsLines "/etc/network/interfaces" $ concatMap fo $ zip [0..] ips 
+f = mapM_ putStrLn $ failOvers_ ["46.105.240.20","46.105.240.21"]
+
+failOvers = File.containsLines "/etc/network/interfaces" . failOvers_
+
+failOvers_ = concatMap fo . zip [0..] 
   where fo (n,ip) = let i = "eth0:"++show n
-                    in ["auto ",i
-                       ,"iface ",i," inet static"
-                       ,"    address ",ip
+                    in [""
+                       ,u ["auto",i]
+                       ,u ["iface",i,"inet static"]
+                       ,u ["    address",ip]
                        ,"    netmask 255.255.255.255"
                        ,""
                        ,"iface eth0 inet static"
-                       ,"    post-up /sbin/ifconfig ",i," ",ip," netmask 255.255.255.255 broadcast ",ip
-                       ,"    pre-down /sbin/ifconfig ",i," down"
+                       ,u ["    post-up /sbin/ifconfig",i,ip,"netmask 255.255.255.255 broadcast",ip]
+                       ,u ["    pre-down /sbin/ifconfig",i,"down"]
                        ]
+
+        u = unwords
 -- /etc/init.d/networking restart
 
 quid2TittoService = background "quid2-titto" `requires` quid2TittoPkg
