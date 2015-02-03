@@ -74,13 +74,14 @@ hosts =
           -- Initial setup
           ,host "188.165.202.170"
           -- & sshPubKey "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC/h5q0pshKWDldX+vk2pFo/JdfcgrCBt73R7h/pThvyXshBGKYCB+X3dsT1ew895A9tSUIbwC7yCjXClPFfva++a7SA9D8qEWtoWuhm3KUqsGnA/5RhiyYl5WODt005xzksGUaRSTggc++0jegtDsNKADpqEY8c74ffg09C1mWGBKgJE+OCYSEpWsQ+KDpbwyyZvaUiVIDt11XfM7zwwidbgOtTO3+cohE/EkkgR47YD/OEdtcgTzemEy6Z/zdLa2uQeiCgVauSPTmJR9FKD76etaiFDTeHkLdpuCPO3NhDKR1cobRYReyatQLa3lCWdQWCUNx0AUX6vBWf7VbAX0V"
-          {- Authorize access from titto
+          -- Authorize access from titto
           & Ssh.authorizedKeys "root"          
           & Ssh.passwordAuthentication False
+          & Apt.update & Apt.upgrade
           & Apt.unattendedUpgrades
           & Apt.installed ["emacs24"]      
-          -} 
-           & failOvers ["46.105.240.20","46.105.240.21","46.105.240.22","46.105.240.23"]
+
+          -- & failOvers ["46.105.240.20","46.105.240.21","46.105.240.22","46.105.240.23"]
 
           
           {-
@@ -133,7 +134,7 @@ failOvers_ = concatMap fo . zip [0..]
                        ,u ["auto",i]
                        ,u ["iface",i,"inet static"]
                        ,u ["    address",ip]
-                       ,"    netmask 255.255.255.255"
+                       ,   "    netmask 255.255.255.255"
                        ,""
                        ,"iface eth0 inet static"
                        ,u ["    post-up /sbin/ifconfig",i,ip,"netmask 255.255.255.255 broadcast",ip]
