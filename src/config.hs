@@ -4,7 +4,7 @@
 import Propellor
 import Propellor.CmdLine
 -- import Propellor.Property.Scheduled
--- import qualified Propellor.Property.File as File
+import qualified Propellor.Property.File as File
 import qualified Propellor.Property.Apt as Apt
 import qualified Propellor.Property.Ssh as Ssh
 -- import qualified Propellor.Property.Network as Network
@@ -61,7 +61,8 @@ hosts =
           host "nano.quid2.org"
           & sshPubKey "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC/h5q0pshKWDldX+vk2pFo/JdfcgrCBt73R7h/pThvyXshBGKYCB+X3dsT1ew895A9tSUIbwC7yCjXClPFfva++a7SA9D8qEWtoWuhm3KUqsGnA/5RhiyYl5WODt005xzksGUaRSTggc++0jegtDsNKADpqEY8c74ffg09C1mWGBKgJE+OCYSEpWsQ+KDpbwyyZvaUiVIDt11XfM7zwwidbgOtTO3+cohE/EkkgR47YD/OEdtcgTzemEy6Z/zdLa2uQeiCgVauSPTmJR9FKD76etaiFDTeHkLdpuCPO3NhDKR1cobRYReyatQLa3lCWdQWCUNx0AUX6vBWf7VbAX0V"
 
-          & Ssh.authorizedKeys "root" & Ssh.keyImported SshRsa "root"
+          & Ssh.authorizedKeys "root"
+          & Ssh.keyImported SshRsa "root" -- Setup ssh key for 'root' user 
           & Apt.unattendedUpgrades
           & Apt.installed ["emacs24"]
           & cabalUpdate          
@@ -72,16 +73,13 @@ hosts =
           -- Initial setup
           ,host "188.165.202.170"
           -- & sshPubKey "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC/h5q0pshKWDldX+vk2pFo/JdfcgrCBt73R7h/pThvyXshBGKYCB+X3dsT1ew895A9tSUIbwC7yCjXClPFfva++a7SA9D8qEWtoWuhm3KUqsGnA/5RhiyYl5WODt005xzksGUaRSTggc++0jegtDsNKADpqEY8c74ffg09C1mWGBKgJE+OCYSEpWsQ+KDpbwyyZvaUiVIDt11XfM7zwwidbgOtTO3+cohE/EkkgR47YD/OEdtcgTzemEy6Z/zdLa2uQeiCgVauSPTmJR9FKD76etaiFDTeHkLdpuCPO3NhDKR1cobRYReyatQLa3lCWdQWCUNx0AUX6vBWf7VbAX0V"
-          -- Authorize access from titto
-          & Ssh.authorizedKeys "root"
-          -- Setup ssh key for 'root' user 
-          -- & Ssh.keyImported SshRsa "root"
+          {- Authorize access from titto
+          & Ssh.authorizedKeys "root"          
           & Ssh.passwordAuthentication False
           & Apt.unattendedUpgrades
           & Apt.installed ["emacs24"]      
-          -- & cabalUpdate          
-          -- & quid2CheckService
-          -- & quid2TittoService -- BUG: fails to start unless is already running
+          -} 
+           & failOvers ["46.105.240.20","46.105.240.21","46.105.240.22","46.105.240.23"]
 
           
           {-
@@ -123,6 +121,19 @@ hosts =
          -- 'dev' docker service  
         ,host "[quid2.org]:3000" & sshPubKey "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC1OPNMhPyVdSUcwP47qxtjn+ZXlT2de6vXNeRVVP1fTbyh/DBkoH1zUTM5RdStPSRtYXjP0C+eN/xAAOHaYXIoIYyjLR5ZLqOOgyqQ6ghv5Rs7vQJ6FqyFBLcKXdeBhjVcTnwGKejK+cM7MicWzINJkpdh4/AEuv4zlc8QS1wH9lMTYV2H/BhyMx1YV4DzDgpTmEfJIecOnS0r0U2VjjA4HNGxnjvx5X9J+l9vluo2uu5XeuPY9jC5zW7nPjwtTYsHwpsx14BudDYIcgcph7bjvqvSnA1YwgU5A3NefifCrA+kVpd/9kWAx+CnezFk4P1JaBvEd6eUAhMjl9OpZXXh"
 	]
+
+failOvers ips = File.containsLines "/etc/network/interfaces" $ concatMap fo $ zip [0..] ips 
+  where fo (n,ip) = let i = "eth0:"++show n
+                    in ["auto ",i
+                       ,"iface ",i," inet static"
+                       ,"    address ",ip
+                       ,"    netmask 255.255.255.255"
+                       ,""
+                       ,"iface eth0 inet static"
+                       ,"    post-up /sbin/ifconfig ",i," ",ip," netmask 255.255.255.255 broadcast ",ip
+                       ,"    pre-down /sbin/ifconfig ",i," down"
+                       ]
+-- /etc/init.d/networking restart
 
 quid2TittoService = background "quid2-titto" `requires` quid2TittoPkg
 
