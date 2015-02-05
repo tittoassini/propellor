@@ -50,7 +50,7 @@ import Data.List.Utils
 import qualified Data.Set as S
 
 installed :: Property
-installed = Apt.installed ["docker.io"]
+installed = Apt.installed ["lxc-docker"] -- "docker.io"]
 
 -- | Configures docker with an authentication file, so that images can be
 -- pushed to index.docker.io. Optional.
@@ -516,7 +516,7 @@ readIdentFile cid = fromMaybe (error "bad ident in identFile")
 	. readish <$> readFile (identFile cid)
 
 dockercmd :: String
-dockercmd = "docker.io"
+dockercmd = "docker"
 
 report :: [Bool] -> Result
 report rmed
