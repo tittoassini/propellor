@@ -33,14 +33,14 @@ propellor --set nano.quid2.org 'SshPrivKey SshRsa ""'
 propellor --set nano.quid2.org 'SshPubKey SshRsa "root"'
 propellor --set nano.quid2.org 'SshPrivKey SshRsa "root"'
 
-propellor --set nano.quid2.org 'SshAuthorizedKeys "users"'
+propellor --set nano.quid2.org 'SshAuthorizedKeys "root"'
 
 
 ---------- New Server
 -- Add titto's public key to 
 propellor --set 188.165.202.170 'SshAuthorizedKeys "titto"'
 
-propellor --set 188.165.202.170 'SshAuthorizedKeys "users"'
+propellor --set 188.165.202.170 'SshAuthorizedKeys "root"'
 
 ssh-dss AAAAB3NzaC1kc3MAAACBALwa1J9HDpcRkMpliV3QnYPN5GDuasBdM1s+RpZ3v82PYyOxqVn+Vt79VYuyTc7TK8KnvsNDVnfFETHy3IxY772YRR8X+T2Wt1tcFBednPf5bIPafX1DhKPXTywG8Q4xriidzHZLlj3eyXWeCElxNk4c4d+NIWK7M3iJDCOphQeFAAAAFQCPaYqOr09/d/2taJmWlZvTP7xYEwAAAIBbyd/CjHf8zw0W1dNsZO0VXwieAPa/tAkCAxeWCsDxSyfeasXDtciJZEPAq6U4H67b3lHwU0afJw1NycfirP0hYsT2Icwg1KXhCD6zDaeswWidhLPII8Cz5vqfXDobIZF17bODh1WHUtuwLxwA4z6FiBU8EMkeDdm28R5fe0QemAAAAIB2dI4oruRoPpxJmC3ETVdT3zBp73eGr9nL8IU4i+uOuJGtb1nOCcJYQxSw/1qnEGIN/PBlR4tufV6KiBCPXcrl1GhhQ9oVUJBZyZrM29HDe9VZ3WCZ6usmNRnTEnq593O0189dv4XRZQkSts5f/hdRg/kToyqaG+egBerA9A
 fsrA== titto@ubuntu
@@ -71,7 +71,7 @@ hosts =
 -}
           host "nano.quid2.org"
           & sshPubKey "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC/h5q0pshKWDldX+vk2pFo/JdfcgrCBt73R7h/pThvyXshBGKYCB+X3dsT1ew895A9tSUIbwC7yCjXClPFfva++a7SA9D8qEWtoWuhm3KUqsGnA/5RhiyYl5WODt005xzksGUaRSTggc++0jegtDsNKADpqEY8c74ffg09C1mWGBKgJE+OCYSEpWsQ+KDpbwyyZvaUiVIDt11XfM7zwwidbgOtTO3+cohE/EkkgR47YD/OEdtcgTzemEy6Z/zdLa2uQeiCgVauSPTmJR9FKD76etaiFDTeHkLdpuCPO3NhDKR1cobRYReyatQLa3lCWdQWCUNx0AUX6vBWf7VbAX0V"
-          & Ssh.authorizedKeys "users"
+          & Ssh.authorizedKeys "root"
           {-
           & Ssh.keyImported SshRsa "root" -- Setup ssh key for 'root' user 
           & Apt.unattendedUpgrades
