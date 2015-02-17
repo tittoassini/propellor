@@ -24,6 +24,9 @@ import qualified Propellor.Property.Reboot as Reboot
 Backup to nano from server1:
 rsync -avzH --progress --delete --delete-excluded  /root/data root@nano.quid2.org:/home
 
+and back:
+rsync -avzH --progress --delete --delete-excluded  /home/data root@188.165.202.170:/root
+
 
 Run Propellor:
 
@@ -41,7 +44,7 @@ propellor --set nano.quid2.org 'SshAuthorizedKeys "root"'
 
 
 ---------- New Server
--- Add titto's public key to 
+-- Add titto's public key to
 propellor --set 188.165.202.170 'SshAuthorizedKeys "titto"'
 
 propellor --set 188.165.202.170 'SshPrivKey SshRsa "root"'
@@ -83,15 +86,17 @@ hosts =
           & sshPubKey nanoPub
           & Ssh.authorizedKeys "root"
           {-
-          & Ssh.keyImported SshRsa "root" -- Setup ssh key for 'root' user 
+          & Ssh.keyImported SshRsa "root" -- Setup ssh key for 'root' user
           & Apt.unattendedUpgrades
           & Apt.installed ["emacs24"]
-          & cabalUpdate          
+          & cabalUpdate
           & quid2CheckService
           & quid2TittoService -- BUG: fails to start unless is already running
           -}
 
           -- Initial setup
+          -- Problem with debian 8, cannot access github unless
+          -- apt-get install ca-certificates
           ,host "188.165.202.170"
           & sshPubKey sysPub
 
@@ -104,8 +109,8 @@ hosts =
           & Apt.installed ["emacs24","xz-utils"]
           -- & Reboot.now
 
-          -- & Apt.unattendedUpgrades          
-          -- & failOvers ["46.105.240.20","46.105.240.21","46.105.240.22","46.105.240.23"]
+          -- & Apt.unattendedUpgrades
+          & failOvers ["46.105.240.20","46.105.240.21","46.105.240.22","46.105.240.23"]
           -- & Ssh.passwordAuthentication False
 
           -- Manual ops
@@ -116,7 +121,7 @@ hosts =
           -- cd /tmp; wget http://www.seas.upenn.edu/~bcpierce/unison/download/releases/stable/unison-2.48.3.tar.gz;tar xvzf unison-2.48.3.tar.gz;cd unison-2.48.3;make UISTYLE=text;mv ./unison /usr/bin/
            -- mkdir /root/data mkdir /root/tmp
 
-           
+
           {-
 * deploy propellor: PROB: Unable to locate package libghc-async-dev
 * Add crontab jobs
@@ -141,7 +146,7 @@ hosts =
          & Cron.job "rsync-backup" "*/30 * * * *" "root" "/root"
          "rsync -avz --progress --delete /home/backup root@nano.quid2.org:/home"
 
-         
+
          {-
          & Obnam.backup "/home/backup" "*/20 * * * *"
 		[ "--repository=sftp://nano.quid2.org/~/mygitrepos.obnam"
@@ -150,11 +155,11 @@ hosts =
 		`requires` Gpg.keyImported "1B169BE1" "root"
 		`requires` Ssh.keyImported SshRsa "root"
           -}
-         
-        -- 'quid2' docker service  
+
+        -- 'quid2' docker service
         ,host "[quid2.org]:2222" & sshPubKey "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCR89KzcSBEJQ38/1gKIt/sqa4L71RzwoPS24qKyv5SmSJuWMpbPpoGIep6ucUYXFAtaLKwHxVXHfWrE4szZtYP+qVb9sVdPhhQ1GQThJFBHKJzSkk7jmO3tZ0gwl25GYebvTWoj+MszpdBxtofhHqiYmPFTSN/wlVGU1UmpZI6uUAUu+DA+1/uOHFCwCniQoLloiVDOGudKUAwaTubGc/qjVxQIfOACbbDN7CkbVA8NuKwqbfEZta3jafwk3HgIyQmDBU7gMYLWS0Z5GX4HsNEsogMsxNslNrG+EWwOgs1myVF2Uplw5h+1gnErREocWDrQ6jMAJRNp5QT4qO0bouX"
 
-         -- 'dev' docker service  
+         -- 'dev' docker service
         ,host "[quid2.org]:3000" & sshPubKey "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC1OPNMhPyVdSUcwP47qxtjn+ZXlT2de6vXNeRVVP1fTbyh/DBkoH1zUTM5RdStPSRtYXjP0C+eN/xAAOHaYXIoIYyjLR5ZLqOOgyqQ6ghv5Rs7vQJ6FqyFBLcKXdeBhjVcTnwGKejK+cM7MicWzINJkpdh4/AEuv4zlc8QS1wH9lMTYV2H/BhyMx1YV4DzDgpTmEfJIecOnS0r0U2VjjA4HNGxnjvx5X9J+l9vluo2uu5XeuPY9jC5zW7nPjwtTYsHwpsx14BudDYIcgcph7bjvqvSnA1YwgU5A3NefifCrA+kVpd/9kWAx+CnezFk4P1JaBvEd6eUAhMjl9OpZXXh"
 	]
 
@@ -162,7 +167,7 @@ f = mapM_ putStrLn $ failOvers_ ["46.105.240.20","46.105.240.21"]
 
 failOvers = File.containsLines "/etc/network/interfaces" . failOvers_
 
-failOvers_ = concatMap fo . zip [0..] 
+failOvers_ = concatMap fo . zip [0..]
   where fo (n,ip) = let i = "eth0:"++show n
                     in [""
                        ,u ["auto",i]
@@ -197,15 +202,15 @@ quid2CheckService = combineProperties "cronned quid2-check"
                     ,Cron.job "quid2-check2" "00 15 * * *" "root" "/root" "/root/.cabal/bin/quid2-check check andReport"
                     ,Cron.job "quid2-check3" "*/30 * * * *" "root" "/root" "/root/.cabal/bin/quid2-check /root/backup"
                     ]
-                    `requires` 
+                    `requires`
                     (deployMyPackage "quid2-check"
                      `requires` Apt.installed ["nmap","mailutils"]
                      `requires` Ssh.knownHost hosts "[quid2.org]:2222" "root"
-                     `requires` quidUtilPkg)          
-             
+                     `requires` quidUtilPkg)
+
 quidUtilPkg = deployMyPackage "quid2-util"
               `requires` Apt.installed ["zlib1g-dev"]
-              `requires` deployMyPackage "propellor" 
+              `requires` deployMyPackage "propellor"
 
 cabalUpdate = userScriptProperty "root" ["cabal update"]
 
