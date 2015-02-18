@@ -22,9 +22,9 @@ import qualified Propellor.Property.Git as Git
 import qualified Propellor.Property.Reboot as Reboot
 {-
 Backup to nano from server1:
-rsync -avzH --progress --delete --delete-excluded  /root/data root@nano.quid2.org:/home
+rsync -avzHn --progress --delete --delete-excluded  /root/data root@nano.quid2.org:/root
 
-and back:
+And back:
 rsync -avzH --progress --delete --delete-excluded  /home/data root@188.165.202.170:/root
 
 
@@ -102,25 +102,25 @@ hosts =
 
           -- Once only
           -- Authorize access from titto
-          & Ssh.authorizedKeys "root"
-          & Ssh.keyImported SshRsa "root"
+          -- & Ssh.authorizedKeys "root"
           & Apt.update & Apt.upgrade
-
-          & Apt.installed ["emacs24","xz-utils"]
+          & Apt.installed ["emacs24","xz-utils","curl"]
           -- & Reboot.now
+          -- & Ssh.knownHost hosts "nano.quid2.org" "root"
 
           -- & Apt.unattendedUpgrades
-          & failOvers ["46.105.240.20","46.105.240.21","46.105.240.22","46.105.240.23"]
+          -- & failOvers ["46.105.240.20","46.105.240.21","46.105.240.22","46.105.240.23"]
           -- & Ssh.passwordAuthentication False
+          & Ssh.keyImported SshRsa "root"
+
 
           -- Manual ops
           -- install Latest docker
-          -- scriptProperty "curl -sSL https://get.docker.com/ubuntu/ | sudo sh"
+          -- scriptProperty "curl -sSL https://get.docker.com/ | sh"
           -- Install unison
           -- apt-get install ocaml
           -- cd /tmp; wget http://www.seas.upenn.edu/~bcpierce/unison/download/releases/stable/unison-2.48.3.tar.gz;tar xvzf unison-2.48.3.tar.gz;cd unison-2.48.3;make UISTYLE=text;mv ./unison /usr/bin/
-           -- mkdir /root/data mkdir /root/tmp
-
+           -- copy over /root/data
 
           {-
 * deploy propellor: PROB: Unable to locate package libghc-async-dev
