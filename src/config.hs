@@ -22,10 +22,10 @@ import qualified Propellor.Property.Git as Git
 import qualified Propellor.Property.Reboot as Reboot
 {-
 Backup to nano from server1:
-rsync -avzHn --progress --delete --delete-excluded  /root/data root@nano.quid2.org:/root
+rsync -avzH --progress --delete --delete-excluded  /root/data root@nano.quid2.org:/root
 
 And back:
-rsync -avzH --progress --delete --delete-excluded  /home/data root@188.165.202.170:/root
+rsync -avzHn --progress --delete --delete-excluded  /root/data root@188.165.202.170:/root
 
 
 Run Propellor:
@@ -47,6 +47,7 @@ propellor --set nano.quid2.org 'SshAuthorizedKeys "root"'
 -- Add titto's public key to
 propellor --set 188.165.202.170 'SshAuthorizedKeys "titto"'
 
+propellor --set 188.165.202.170 'SshPubKey SshRsa "root"'
 propellor --set 188.165.202.170 'SshPrivKey SshRsa "root"'
 
 propellor --set 188.165.202.170 'SshAuthorizedKeys "root"'
@@ -103,26 +104,28 @@ hosts =
           -- Once only
           -- Authorize access from titto
           -- & Ssh.authorizedKeys "root"
-          & Apt.update & Apt.upgrade
-          & Apt.installed ["emacs24","xz-utils","curl"]
+          -- & Apt.update & Apt.upgrade
+          -- & Apt.installed ["emacs24","xz-utils","curl"]
           -- & Reboot.now
           -- & Ssh.knownHost hosts "nano.quid2.org" "root"
 
           -- & Apt.unattendedUpgrades
           -- & failOvers ["46.105.240.20","46.105.240.21","46.105.240.22","46.105.240.23"]
           -- & Ssh.passwordAuthentication False
-          & Ssh.keyImported SshRsa "root"
+          -- & Ssh.keyImported SshRsa "root"
 
+         & Cron.job "rsync-backup" "*/30 * * * *" "root" "/root" "rsync -avz --progress --delete /root/data root@nano.quid2.org:/root"
 
-          -- Manual ops
-          -- install Latest docker
-          -- scriptProperty "curl -sSL https://get.docker.com/ | sh"
-          -- Install unison
-          -- apt-get install ocaml
-          -- cd /tmp; wget http://www.seas.upenn.edu/~bcpierce/unison/download/releases/stable/unison-2.48.3.tar.gz;tar xvzf unison-2.48.3.tar.gz;cd unison-2.48.3;make UISTYLE=text;mv ./unison /usr/bin/
-           -- copy over /root/data
-
-          {-
+{-
+         -- Manual ops
+                   -- install Latest docker (PROB: on Debian, docker has to be started manually with 'service docker start'
+                   -- scriptProperty "curl -sSL https://get.docker.com/ | sh"
+                   -- Install unison
+                   -- apt-get install ocaml
+                   -- cd /tmp; wget http://www.seas.upenn.edu/~bcpierce/unison/download/releases/stable/unison-2.48.3.tar.gz;tar xvzf unison-2.48.3.tar.gz;cd unison-2.48.3;make UISTYLE=text;mv ./unison /usr/bin/
+                   -- copy over /root/data
+-}
+                   {-
 * deploy propellor: PROB: Unable to locate package libghc-async-dev
 * Add crontab jobs
 # freedns update
