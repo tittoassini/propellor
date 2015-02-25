@@ -102,19 +102,18 @@ hosts =
           & sshPubKey sysPub
 
           -- Once only
-          -- Authorize access from titto
-          -- & Ssh.authorizedKeys "root"
-          -- & Apt.update & Apt.upgrade
-          -- & Apt.installed ["emacs24","xz-utils","curl"]
-          -- & Reboot.now
-          -- & Ssh.knownHost hosts "nano.quid2.org" "root"
+          & Ssh.authorizedKeys "root"
+          & Ssh.keyImported SshRsa "root"
+          & Ssh.knownHost hosts "nano.quid2.org" "root"
+          & failOvers ["46.105.240.20","46.105.240.21","46.105.240.22","46.105.240.23"]
 
-          -- & Apt.unattendedUpgrades
-          -- & failOvers ["46.105.240.20","46.105.240.21","46.105.240.22","46.105.240.23"]
+          & Apt.update & Apt.upgrade
+          & Apt.installed ["emacs24","xz-utils","curl","phoronix-test-suite","docker"]
+
           -- & Ssh.passwordAuthentication False
-          -- & Ssh.keyImported SshRsa "root"
-
-         & Cron.job "rsync-backup" "*/30 * * * *" "root" "/root" "rsync -avz --progress --delete /root/data root@nano.quid2.org:/root"
+          -- & Reboot.now
+          -- & Apt.unattendedUpgrades
+          -- & Cron.job "rsync-backup" "*/30 * * * *" "root" "/root" "rsync -avz --progress --delete /root/data root@nano.quid2.org:/root"
 
 {-
          -- Manual ops
@@ -124,6 +123,8 @@ hosts =
                    -- apt-get install ocaml
                    -- cd /tmp; wget http://www.seas.upenn.edu/~bcpierce/unison/download/releases/stable/unison-2.48.3.tar.gz;tar xvzf unison-2.48.3.tar.gz;cd unison-2.48.3;make UISTYLE=text;mv ./unison /usr/bin/
                    -- copy over /root/data
+
+ -- migrate container
 -}
                    {-
 * deploy propellor: PROB: Unable to locate package libghc-async-dev
