@@ -19,13 +19,15 @@ import qualified Propellor.Property.User as User
 --import qualified Propellor.Property.Tor as Tor
 -- import qualified Propellor.Property.Docker as Docker
 import qualified Propellor.Property.Git as Git
-import qualified Propellor.Property.Reboot as Reboot
+-- -- import qualified Propellor.Property.Reboot as Reboot
 {-
 Backup to nano from server1:
 rsync -avzH --progress --delete --delete-excluded  /root/data root@nano.quid2.org:/root
 
 And back:
 rsync -avzHn --progress --delete --delete-excluded  /root/data root@188.165.202.170:/root
+
+rsync -avzH --progress --delete --delete-excluded  /root/data root@188.165.202.170:/root  > /dev/null 2>&1 &
 
 
 Run Propellor:
@@ -108,7 +110,7 @@ hosts =
           & failOvers ["46.105.240.20","46.105.240.21","46.105.240.22","46.105.240.23"]
 
           & Apt.update & Apt.upgrade
-          & Apt.installed ["emacs24","xz-utils","curl","phoronix-test-suite","docker"]
+          & Apt.installed ["emacs24","xz-utils","curl","phoronix-test-suite"]
 
           -- & Ssh.passwordAuthentication False
           -- & Reboot.now
@@ -117,8 +119,14 @@ hosts =
 
 {-
          -- Manual ops
+                   -- Update kernel
+wget http://kernel.ubuntu.com/~kernel-ppa/mainline/v3.18.7-vivid/linux-headers-3.18.7-031807-generic_3.18.7-031807.201502110759_amd64.deb
+wget http://kernel.ubuntu.com/~kernel-ppa/mainline/v3.18.7-vivid/linux-headers-3.18.7-031807_3.18.7-031807.201502110759_all.deb
+wget http://kernel.ubuntu.com/~kernel-ppa/mainline/v3.18.7-vivid/linux-image-3.18.7-031807-generic_3.18.7-031807.201502110759_amd64.deb
                    -- install Latest docker (PROB: on Debian, docker has to be started manually with 'service docker start'
                    -- scriptProperty "curl -sSL https://get.docker.com/ | sh"
+                   -- added DOCKER_OPTS="-s overlay" @ /etc/default/docker
+                   --
                    -- Install unison
                    -- apt-get install ocaml
                    -- cd /tmp; wget http://www.seas.upenn.edu/~bcpierce/unison/download/releases/stable/unison-2.48.3.tar.gz;tar xvzf unison-2.48.3.tar.gz;cd unison-2.48.3;make UISTYLE=text;mv ./unison /usr/bin/
