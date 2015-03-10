@@ -205,8 +205,7 @@ quid2Daily = rootCron "daily" (DailyAt 4) [
   ,"rsync -avzH --progress --delete /root/attic/docker /root/attic/quid2 root@nano.quid2.org:/root/attic"
 
   ,"# --------- pull attic from nano ----------"
-  --,"rsync -avzH --progress --delete root@nano.quid2.org:/root/attic/Music root@nano.quid2.org:/root/attic/titto /root/attic"
-  ,"rsync -avzHn --progress --delete --exclude \"docker/**\" --exclude \"quid2/**\" root@nano.quid2.org:/root/attic /root"
+  ,"rsync -avzH --progress --delete --exclude \"docker/**\" --exclude \"quid2/**\" root@nano.quid2.org:/root/attic /root"
 
   ,"# save attic in ftp backup server"
   ,"lftp ftp://ns310652.ip-188-165-202.eu@ftpback-rbx3-272.mybackup.ovh.net -e \"mirror --reverse --delete --verbose /root/attic;quit\""
