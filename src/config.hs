@@ -123,11 +123,12 @@ hosts =
           & Apt.installed ["emacs24","xz-utils","curl","phoronix-test-suite"]
           & Apt.update & Apt.upgrade
           -}
-          & failOvers ["46.105.240.20","46.105.240.21","46.105.240.22","46.105.240.23"]
+          -- NOTE: After this, got a reboot
+          -- & failOvers ["46.105.240.20","46.105.240.21","46.105.240.22","46.105.240.23"]
           -- Linux sys1 3.13.0-46-generic
           {- Later
           getDataFromNano
-          rsync -avzHn root@nano.quid2.org:/root/attic root@nano.quid2.org:/root/data /root
+          rsync -avzH root@nano.quid2.org:/root/attic root@nano.quid2.org:/root/data /root
                     -- & atticInstalled & dockerInstalled & ftpSpace
           -- NOTE: TO BE INSTALLED WHEN ALL DATA IS PRESENT
           -- & quid2Frequent & quid2Hourly & quid2Daily
@@ -155,6 +156,61 @@ hosts =
 	]
 
 f = mapM_ putStrLn $ failOvers_ ["46.105.240.20","46.105.240.21"]
+
+{-
+TODO: use manual configuration instead:
+
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+auto eth0
+iface eth0 inet static
+    address 188.165.202.170
+    netmask 255.255.255.0
+    network 188.165.202.0
+    broadcast 188.165.202.255
+    gateway 188.165.202.254
+    post-up /sbin/ifconfig eth0:0 46.105.240.20 netmask 255.255.255.255 broadcast 46.105.240.20
+    pre-down /sbin/ifconfig eth0:0 down
+    post-up /sbin/ifconfig eth0:1 46.105.240.21 netmask 255.255.255.255 broadcast 46.105.240.21
+    pre-down /sbin/ifconfig eth0:1 down
+    post-up /sbin/ifconfig eth0:2 46.105.240.22 netmask 255.255.255.255 broadcast 46.105.240.22
+    pre-down /sbin/ifconfig eth0:2 down
+    post-up /sbin/ifconfig eth0:3 46.105.240.23 netmask 255.255.255.255 broadcast 46.105.240.23
+    pre-down /sbin/ifconfig eth0:3 down
+
+iface eth0 inet6 static
+	address 2001:41D0:2:93aa::
+	netmask 64
+	post-up /sbin/ip -family inet6 route add 2001:41D0:2:93ff:ff:ff:ff:ff dev eth0
+	post-up /sbin/ip -family inet6 route add default via 2001:41D0:2:93ff:ff:ff:ff:ff
+	pre-down /sbin/ip -family inet6 route del default via 2001:41D0:2:93ff:ff:ff:ff:ff
+	pre-down /sbin/ip -family inet6 route del 2001:41D0:2:93ff:ff:ff:ff:ff dev eth0
+
+auto eth0:0
+iface eth0:0 inet static
+    address 46.105.240.20
+    netmask 255.255.255.255
+
+auto eth0:1
+iface eth0:1 inet static
+    address 46.105.240.21
+    netmask 255.255.255.255
+
+auto eth0:2
+iface eth0:2 inet static
+    address 46.105.240.22
+    netmask 255.255.255.255
+
+auto eth0:3
+iface eth0:3 inet static
+    address 46.105.240.23
+    netmask 255.255.255.255
+-}
 
 failOvers = File.containsLines "/etc/network/interfaces" . failOvers_
 
