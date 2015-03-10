@@ -21,6 +21,8 @@ import qualified Propellor.Property.User as User
 -- import qualified Propellor.Property.Docker as Docker
 import qualified Propellor.Property.Git as Git
 -- -- import qualified Propellor.Property.Reboot as Reboot
+import Utility.FileMode
+
 {-
 Backup to nano from server1:
 rsync -avzH --progress --delete --delete-excluded  /root/data root@nano.quid2.org:/root
@@ -62,6 +64,7 @@ propellor --set quid.org 'Password "attic"'
 cd ~/.propellor;./propellor --spin 188.165.202.170
 
 cd ~/.propellor;./propellor --spin nano.quid2.org
+cd ~/.propellor;./propellor --spin quid2.org
 -}
 
 -- * update to latest propellor when it works
@@ -215,9 +218,11 @@ data Freq = EveryMins Int | HourlyAt Int | DailyAt Int
 cronTime (EveryMins m) = concat ["*/",show m," * * * *"]
 cronTime  (HourlyAt m) = concat [show m," * * * *"]
 cronTime  (DailyAt h) = concat ["0 ",show h," * * *"]
-rootCron name t ls = (property ("cronFile " ++ fp)  $
-                               withPrivData (Password "attic") $ \pwd -> ensureProperty (fp `File.hasContent` (concat ["export ATTIC_PASSPHRASE=","pwd" ] :ls)))  `requires` Cron.job ("root-"++ name) (cronTime t) "root" "/root" fp
-              where fp = "/root/bin/" ++ name
+rootCron name t ls = (property ("cronFile " ++ fp) $ withPrivData (Password "attic") $ ensureProperty . fl)
+                     `requires` Cron.job ("root-"++ name) (cronTime t) "root" "/root" fp
+  where
+        fp = "/root/bin/" ++ name
+        fl pwd = combineProperties "" [fp `File.hasContent` (concat ["export ATTIC_PASSPHRASE=","pwd"]:ls),fp `File.mode` 700]
 
 -- untested
 ftpSpace :: Property

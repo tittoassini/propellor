@@ -18,7 +18,7 @@ f `hasContent` newcontent = fileProperty ("replace " ++ f)
 -- The file's permissions are preserved if the file already existed.
 -- Otherwise, they're set to 600.
 hasPrivContent :: FilePath -> Property
-hasPrivContent f = property desc $ withPrivData (PrivFile f) $ \privcontent -> 
+hasPrivContent f = property desc $ withPrivData (PrivFile f) $ \privcontent ->
 	ensureProperty $ fileProperty' writeFileProtected desc
 		(\_oldcontent -> lines privcontent) f
   where
@@ -48,7 +48,7 @@ f `lacksLine` l = fileProperty (f ++ " remove: " ++ l) (filter (/= l)) f
 
 -- | Removes a file. Does not remove symlinks or non-plain-files.
 notPresent :: FilePath -> Property
-notPresent f = check (doesFileExist f) $ property (f ++ " not present") $ 
+notPresent f = check (doesFileExist f) $ property (f ++ " not present") $
 	makeChange $ nukeFile f
 
 fileProperty :: Desc -> ([Line] -> [Line]) -> FilePath -> Property
