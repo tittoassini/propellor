@@ -111,8 +111,8 @@ hosts =
           -- Problem with debian 8, cannot access github unless
           -- apt-get install ca-certificates
           ,host "quid2.org" --           ,host "188.165.202.170"
-          & quid2Frequent & quid2Hourly & quid2Daily
-          -- & atticInstalled -- & dockerInstalled & ftpSpace &&
+          -- & quid2Frequent & quid2Hourly & quid2Daily
+          & atticInstalled & dockerInstalled & ftpSpace
           {- onceOnly
           & sshPubKey sys1Pub
           & Ssh.authorizedKeys "root"
@@ -228,7 +228,8 @@ rootCron name t ls = (property ("cronFile " ++ fp) $ withPrivData (Password "att
 -- untested
 ftpSpace :: Property
 ftpSpace = property "ftp space ready to use" $
-           withPrivData (Password "ftp") $ \pwd -> ensureProperty ("/root/.netrc" `File.hasContent` ["machine ftpback-rbx3-272.mybackup.ovh.net login ns310652.ip-188-165-202.eu password " ++ pwd]`requires` Apt.installed ["lftp"])
+           withPrivData (Password "ftp") $ \pwd -> ensureProperty (netrc pwd `requires` Apt.installed ["lftp"])
+         where netrc pwd = let f = "/root/.netrc" in combineProperties "netrc" [f `File.hasContent` ["machine ftpback-rbx3-272.mybackup.ovh.net login ns310652.ip-188-165-202.eu password " ++ pwd],f `File.mode` 0o600]
 
 quid2TittoService = background "quid2-titto" `requires` quid2TittoPkg
 
