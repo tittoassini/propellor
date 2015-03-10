@@ -222,7 +222,7 @@ rootCron name t ls = (property ("cronFile " ++ fp) $ withPrivData (Password "att
                      `requires` Cron.job ("root-"++ name) (cronTime t) "root" "/root" fp
   where
         fp = "/root/bin/" ++ name
-        fl pwd = combineProperties "" [fp `File.hasContent` (concat ["export ATTIC_PASSPHRASE=","pwd"]:ls),fp `File.mode` 700]
+        fl pwd = combineProperties "" [fp `File.hasContent` (concat ["export ATTIC_PASSPHRASE=","pwd"]:ls),fp `File.mode` 0o700]
 
 -- untested
 ftpSpace :: Property
