@@ -111,14 +111,20 @@ hosts =
           -- Initial setup
           -- Problem with debian 8, cannot access github unless
           -- apt-get install ca-certificates
-          ,host "quid2.org" -- host "188.165.202.170"
-          -- onceOnly
+          -- need to use this till we have
+          -- host "188.165.202.170"
+          -- till networking is configured, need to fix /etc/hosts to point to 188.165.202.170
+          ,host "quid2.org"
+          {- onceOnly
           & sshPubKey sys1Pub
           & Ssh.authorizedKeys "root"
           & Ssh.keyImported SshRsa "root"
           & Ssh.knownHost hosts "nano.quid2.org" "root"
           & Apt.installed ["emacs24","xz-utils","curl","phoronix-test-suite"]
-          --
+          & Apt.update & Apt.upgrade
+          -}
+          & failOvers ["46.105.240.20","46.105.240.21","46.105.240.22","46.105.240.23"]
+          -- Linux sys1 3.13.0-46-generic
           {- Later
           getDataFromNano
           rsync -avzHn root@nano.quid2.org:/root/attic root@nano.quid2.org:/root/data /root
@@ -126,15 +132,9 @@ hosts =
           -- NOTE: TO BE INSTALLED WHEN ALL DATA IS PRESENT
           -- & quid2Frequent & quid2Hourly & quid2Daily
           & failOvers ["46.105.240.20","46.105.240.21","46.105.240.22","46.105.240.23"]
-          & Apt.update & Apt.upgrade
-
                  -- & Ssh.passwordAuthentication False
                  -- & Reboot.now
                  -- & Apt.unattendedUpgrades
-
-                 --  /root/.netrc /root/bin
-                 -- & Cron.job "backup" "*/15 * * * *" "root" "/root" "/root/bin/backup" -- rsync -avzH --progress --delete /root/data root@nano.quid2.org:/root/backup/sys1"
-
           -}
                  -- 'quid2' docker service
                  ,host "[quid2.org]:2222" & sshPubKey "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCR89KzcSBEJQ38/1gKIt/sqa4L71RzwoPS24qKyv5SmSJuWMpbPpoGIep6ucUYXFAtaLKwHxVXHfWrE4szZtYP+qVb9sVdPhhQ1GQThJFBHKJzSkk7jmO3tZ0gwl25GYebvTWoj+MszpdBxtofhHqiYmPFTSN/wlVGU1UmpZI6uUAUu+DA+1/uOHFCwCniQoLloiVDOGudKUAwaTubGc/qjVxQIfOACbbDN7CkbVA8NuKwqbfEZta3jafwk3HgIyQmDBU7gMYLWS0Z5GX4HsNEsogMsxNslNrG+EWwOgs1myVF2Uplw5h+1gnErREocWDrQ6jMAJRNp5QT4qO0bouX"
