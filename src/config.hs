@@ -201,15 +201,18 @@ atticData n = [
 pruneData n = ["attic prune  -v /root/attic/"++n++" --keep-within=10d --keep-weekly=4 --keep-monthly=-1","attic list /root/attic/"++n++""]
 
 quid2Daily = rootCron "daily" (DailyAt 4) [
-  "# --------- push attic/sys1 attic/docker to nano ----------"
-  ,"rsync -avzH --progress --delete /root/attic/docker /root/attic/sys1 root@nano.quid2.org:/root/attic"
+  "# --------- push attic/docker attic/quid2 to nano ----------"
+  ,"rsync -avzH --progress --delete /root/attic/docker /root/attic/quid2 root@nano.quid2.org:/root/attic"
 
   ,"# --------- pull attic from nano ----------"
   --,"rsync -avzH --progress --delete root@nano.quid2.org:/root/attic/Music root@nano.quid2.org:/root/attic/titto /root/attic"
-  ,"rsync -avzHn --progress --delete --exclude /root/attic/docker/** --exclude /root/attic/sys1/** root@nano.quid2.org:/root/attic /root"
+  ,"rsync -avzH --progress --delete --exclude /root/attic/docker/** --exclude /root/attic/quid2/** root@nano.quid2.org:/root/attic /root"
 
   ,"# save attic in ftp backup server"
   ,"lftp ftp://ns310652.ip-188-165-202.eu@ftpback-rbx3-272.mybackup.ovh.net -e \"mirror --reverse --delete --verbose /root/attic;quit\""
+
+  ,"# save docker-images"
+  ,"lftp ftp://ns310652.ip-188-165-202.eu@ftpback-rbx3-272.mybackup.ovh.net -e \"mirror --reverse --delete --verbose /root/data/docker-images;quit\""
   ]
 
 data Freq = EveryMins Int | HourlyAt Int | DailyAt Int
@@ -221,7 +224,7 @@ rootCron name t ls = (property ("cronFile " ++ fp) $ withPrivData (Password "att
                      `requires` Cron.job ("root-"++ name) (cronTime t) "root" "/root" fp
   where
         fp = "/root/bin/" ++ name
-        fl pwd = combineProperties "" [fp `File.hasContent` (concat ["export ATTIC_PASSPHRASE=","pwd"]:ls),fp `File.mode` 0o700]
+        fl pwd = combineProperties "" [fp `File.hasContent` (concat ["export ATTIC_PASSPHRASE=",pwd]:ls),fp `File.mode` 0o700]
 
 -- untested
 ftpSpace :: Property
