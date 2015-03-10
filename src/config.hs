@@ -24,6 +24,7 @@ import qualified Propellor.Property.Git as Git
 -- import Utility.FileMode
 
 {-
+
 Backup to nano from server1:
 rsync -avzH --progress --delete --delete-excluded  /root/data root@nano.quid2.org:/root
 
@@ -110,18 +111,20 @@ hosts =
           -- Initial setup
           -- Problem with debian 8, cannot access github unless
           -- apt-get install ca-certificates
-          ,host "quid2.org" --           ,host "188.165.202.170"
-          -- & quid2Frequent & quid2Hourly & quid2Daily
-          -- & atticInstalled & dockerInstalled
-          & ftpSpace
-          {- onceOnly
+          ,host "quid2.org" -- host "188.165.202.170"
+          -- onceOnly
           & sshPubKey sys1Pub
           & Ssh.authorizedKeys "root"
           & Ssh.keyImported SshRsa "root"
           & Ssh.knownHost hosts "nano.quid2.org" "root"
           & Apt.installed ["emacs24","xz-utils","curl","phoronix-test-suite"]
-          -}
+          --
           {- Later
+          getDataFromNano
+          rsync -avzHn root@nano.quid2.org:/root/attic root@nano.quid2.org:/root/data /root
+                    -- & atticInstalled & dockerInstalled & ftpSpace
+          -- NOTE: TO BE INSTALLED WHEN ALL DATA IS PRESENT
+          -- & quid2Frequent & quid2Hourly & quid2Daily
           & failOvers ["46.105.240.20","46.105.240.21","46.105.240.22","46.105.240.23"]
           & Apt.update & Apt.upgrade
 
@@ -210,7 +213,9 @@ quid2Daily = rootCron "daily" (DailyAt 4) [
   ,"# save attic in ftp backup server"
   ,"lftp ftp://ns310652.ip-188-165-202.eu@ftpback-rbx3-272.mybackup.ovh.net -e \"mirror --reverse --delete --verbose /root/attic;quit\""
 
-  ,"# save docker-images"
+  -- we do not transfer all data as the ftp server cannot handle directories with too many files
+  -- PROB: these images contain our data unencrypted
+   ,"# save docker-images"
   ,"lftp ftp://ns310652.ip-188-165-202.eu@ftpback-rbx3-272.mybackup.ovh.net -e \"mirror --reverse --delete --verbose /root/data/docker-images;quit\""
   ]
 
@@ -225,7 +230,6 @@ rootCron name t ls = (property ("cronFile " ++ fp) $ withPrivData (Password "att
         fp = "/root/bin/" ++ name
         fl pwd = combineProperties "" [fp `File.hasContent` (concat ["export ATTIC_PASSPHRASE=",pwd]:ls),fp `File.mode` 0o700]
 
--- untested
 ftpSpace :: Property
 ftpSpace = property "ftp space ready to use" $
            withPrivData (Password "ftp") $ \pwd -> ensureProperty (netrc pwd `requires` Apt.installed ["lftp"])
