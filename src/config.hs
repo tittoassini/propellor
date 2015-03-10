@@ -21,7 +21,7 @@ import qualified Propellor.Property.User as User
 -- import qualified Propellor.Property.Docker as Docker
 import qualified Propellor.Property.Git as Git
 -- -- import qualified Propellor.Property.Reboot as Reboot
-import Utility.FileMode
+-- import Utility.FileMode
 
 {-
 Backup to nano from server1:
@@ -111,7 +111,7 @@ hosts =
           -- Problem with debian 8, cannot access github unless
           -- apt-get install ca-certificates
           ,host "quid2.org" --           ,host "188.165.202.170"
-          & quid2Frequent -- & quid2Hourly & quid2Daily
+          & quid2Frequent & quid2Hourly & quid2Daily
           -- & atticInstalled -- & dockerInstalled & ftpSpace &&
           {- onceOnly
           & sshPubKey sys1Pub
@@ -188,18 +188,17 @@ atticInstalled  = userScriptProperty "root" ["pip3 install attic --upgrade"] `re
 -- untested
 quid2Frequent = rootCron "frequent" (EveryMins 15)  ["rsync -avzH --progress --delete /root/data root@nano.quid2.org:/root/backup/sys1"]
 
-quid2Hourly = rootCron "hourly" (HourlyAt 0) [
-  "# attic sys1"
-  ,"cd /root/data"
-
+quid2Hourly = rootCron "hourly" (HourlyAt 0) $ [
+   "cd /root/data"
   ,"attic create -s /root/attic/quid2::`date +%Y-%m-%d-%H-%M` quid2-store quid2-user"
+  ] ++ pruneData "quid2" ++ atticData "docker"
 
-  ,"# attic docker"
-  ,"cd /root/data/docker"
-  ,"attic create -s /root/attic/docker::`date +%Y-%m-%d-%H-%M` ."
-  ,"attic prune  -v /root/attic/docker --keep-within=10d --keep-weekly=4 --keep-monthly=-1"
-  ,"attic list /root/attic/docker"
-  ]
+atticData n = [
+   "# attic "++n++""
+  ,"cd /root/data/"++n
+  ,"attic create -s /root/attic/"++n++"::`date +%Y-%m-%d-%H-%M` ."] ++ pruneData n
+
+pruneData n = ["attic prune  -v /root/attic/"++n++" --keep-within=10d --keep-weekly=4 --keep-monthly=-1","attic list /root/attic/"++n++""]
 
 quid2Daily = rootCron "daily" (DailyAt 4) [
   "# --------- push attic/sys1 attic/docker to nano ----------"
