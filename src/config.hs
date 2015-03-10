@@ -112,7 +112,8 @@ hosts =
           -- apt-get install ca-certificates
           ,host "quid2.org" --           ,host "188.165.202.170"
           -- & quid2Frequent & quid2Hourly & quid2Daily
-          & atticInstalled & dockerInstalled & ftpSpace
+          -- & atticInstalled & dockerInstalled
+          & ftpSpace
           {- onceOnly
           & sshPubKey sys1Pub
           & Ssh.authorizedKeys "root"
@@ -177,15 +178,14 @@ unisonInstalled = let v = "2.48.3" in userScriptProperty "root" ["cd /tmp"
                                                                 ,concat ["cd unison-",v]
                                                                 ,"make UISTYLE=text"
                                                                 ,"mv ./unison /usr/bin/"] `requires` Apt.installed ["ocaml"]
--- untested
+
 -- PROB: on Debian, docker has to be started manually with 'service docker start'
 -- with kernel >= 3.18 add DOCKER_OPTS="-s overlay" @ /etc/default/docker
+-- PROB: stops if docker is already there
 dockerInstalled  = userScriptProperty "root" ["curl -sSL https://get.docker.com/ | sh"]
 
--- untested
 atticInstalled  = userScriptProperty "root" ["pip3 install attic --upgrade"] `requires` Apt.installed ["build-essential","python3-pip","libssl-dev","libevent-dev","uuid-dev","libacl1-dev","liblzo2-dev"]
 
--- untested
 quid2Frequent = rootCron "frequent" (EveryMins 15)  ["rsync -avzH --progress --delete /root/data root@nano.quid2.org:/root/backup/sys1"]
 
 quid2Hourly = rootCron "hourly" (HourlyAt 0) $ [
