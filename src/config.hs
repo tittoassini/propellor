@@ -96,7 +96,7 @@ hosts =
  * add system firewall (with propellor?)
 -}
           host "nano.quid2.org"
-          & sshPubKey nanoPub
+          -- & sshPubKey nanoPub
           -- Manual additions
           -- cron jobs go to /etc/cron.d/
           -- & Cron.job "titto-to-attic" "30 * * * *" "root" "/root/data/titto" "attic create -vs /root/attic/titto:: ."
@@ -107,7 +107,7 @@ hosts =
           & Apt.installed ["emacs24"]
           & quid2CheckService
           -}
-          & cabalUpdate
+          -- & cabalUpdate
           & quid2TittoService -- BUG: fails to start unless is already running
 
           -- Initial setup
