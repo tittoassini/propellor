@@ -24,6 +24,7 @@ import qualified Propellor.Property.Git as Git
 -- import Utility.FileMode
 
 {-
+scp root@188.165.202.170:/var/log/syslog ~/backup
 
 Backup to nano from server1:
 rsync -avzH --progress --delete --delete-excluded  /root/data root@nano.quid2.org:/root
@@ -41,6 +42,7 @@ cd ~/.propellor;./propellor --spin nano.quid2.org
 
 Add secret properties to server's privdata
 propellor --set nano.quid2.org 'Password "quidagent@gmail.com"'
+propellor --set nano.quid2.org 'Password "salus"'
 propellor --set nano.quid2.org 'SshPubKey SshRsa ""'
 propellor --set nano.quid2.org 'SshPrivKey SshRsa ""'
 
@@ -103,10 +105,10 @@ hosts =
           & Ssh.keyImported SshRsa "root" -- Setup ssh key for 'root' user
           & Apt.unattendedUpgrades
           & Apt.installed ["emacs24"]
-          & cabalUpdate
           & quid2CheckService
-          & quid2TittoService -- BUG: fails to start unless is already running
           -}
+          & cabalUpdate
+          & quid2TittoService -- BUG: fails to start unless is already running
 
           -- Initial setup
           -- Problem with debian 8, cannot access github unless
@@ -123,12 +125,15 @@ hosts =
           & Apt.installed ["emacs24","xz-utils","curl","phoronix-test-suite"]
           & Apt.update & Apt.upgrade
           -}
+
           -- NOTE: After this, got a reboot
           -- & failOvers ["46.105.240.20","46.105.240.21","46.105.240.22","46.105.240.23"]
           -- Linux sys1 3.13.0-46-generic
           {- Later
-          getDataFromNano
-          rsync -avzH root@nano.quid2.org:/root/attic root@nano.quid2.org:/root/data /root
+          getDataFromNano:
+          rsync -avzH root@nano.quid2.org:/root/attic  /root
+          rsync -avzH root@nano.quid2.org:/root/backup/sys1/data /root
+
                     -- & atticInstalled & dockerInstalled & ftpSpace
           -- NOTE: TO BE INSTALLED WHEN ALL DATA IS PRESENT
           -- & quid2Frequent & quid2Hourly & quid2Daily
@@ -155,10 +160,12 @@ hosts =
            & sshPubKey raspPub
 	]
 
+
 f = mapM_ putStrLn $ failOvers_ ["46.105.240.20","46.105.240.21"]
 
 {-
 TODO: use manual configuration instead:
+NOTE: the server freezes all the same, this is probably not the problem.
 
 # This file describes the network interfaces available on your system
 # and how to activate them. For more information, see interfaces(5).
@@ -232,11 +239,11 @@ failOvers_ = concatMap fo . zip [0..]
 
 -- untested
 unisonInstalled = let v = "2.48.3" in userScriptProperty "root" ["cd /tmp"
-                                                                ,concat ["wget http://www.seas.upenn.edu/~bcpierce/unison/download/releases/stable/unison-",v,".tar.gz"]
-                                                                ,"tar xvzf unison-",v,".tar.gz"
-                                                                ,concat ["cd unison-",v]
-                                                                ,"make UISTYLE=text"
-                                                                ,"mv ./unison /usr/bin/"] `requires` Apt.installed ["ocaml"]
+                                            ,concat ["wget http://www.seas.upenn.edu/~bcpierce/unison/download/releases/stable/unison-",v,".tar.gz"]
+                                            ,"tar xvzf unison-",v,".tar.gz"
+                                            ,concat ["cd unison-",v]
+                                            ,"make UISTYLE=text"
+                                            ,"mv ./unison /usr/bin/"] `requires` Apt.installed ["ocaml"]
 
 -- PROB: on Debian, docker has to be started manually with 'service docker start'
 -- with kernel >= 3.18 add DOCKER_OPTS="-s overlay" @ /etc/default/docker
@@ -280,6 +287,8 @@ data Freq = EveryMins Int | HourlyAt Int | DailyAt Int
 cronTime (EveryMins m) = concat ["*/",show m," * * * *"]
 cronTime  (HourlyAt m) = concat [show m," * * * *"]
 cronTime  (DailyAt h) = concat ["0 ",show h," * * *"]
+-- TOFIX? Problem with missing dns (see mail on nano.quid2.org)
+-- mass_dns: warning: Unable to determine any DNS servers. Reverse DNS is disabled. Try using --system-dns or specify valid servers with --dns-servers
 rootCron name t ls = (property ("cronFile " ++ fp) $ withPrivData (Password "attic") $ ensureProperty . fl)
                      `requires` Cron.job ("root-"++ name) (cronTime t) "root" "/root" fp
   where
@@ -307,7 +316,7 @@ quid2TittoPkg = deployMyPackage "quid2-titto"
 quid2CheckService = combineProperties "cronned quid2-check"
                     [Cron.job "quid2-check" "*/15 * * * *" "root" "/root" "/root/.cabal/bin/quid2-check check"
                     ,Cron.job "quid2-check2" "00 15 * * *" "root" "/root" "/root/.cabal/bin/quid2-check check andReport"
-                    ,Cron.job "quid2-check3" "*/30 * * * *" "root" "/root" "/root/.cabal/bin/quid2-check /root/backup"
+                    --,Cron.job "quid2-check3" "*/30 * * * *" "root" "/root" "/root/.cabal/bin/quid2-check /root/backup"
                     ]
                     `requires`
                     (deployMyPackage "quid2-check"
