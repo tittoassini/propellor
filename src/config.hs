@@ -105,9 +105,9 @@ hosts =
           & Ssh.keyImported SshRsa "root" -- Setup ssh key for 'root' user
           & Apt.unattendedUpgrades
           & Apt.installed ["emacs24"]
-          & quid2CheckService
           -}
           -- & cabalUpdate
+          & quid2CheckService
           & quid2TittoService -- BUG: fails to start unless is already running
 
           -- Initial setup
