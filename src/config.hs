@@ -94,7 +94,11 @@ hosts :: [Host]
 hosts =
 	[{-
  * add system firewall (with propellor?)
--}
+-}        -- TODO: add monit and /root/.monitrc from nano server
+          -- monit should start after reboot
+          -- currently started manually as: (need to do monit multiple times or http interface not launched??)
+          -- monit;monit start all
+          -- Prob: services seem to get stuck even if they are running
           host "nano.quid2.org"
           -- & sshPubKey nanoPub
           -- Manual additions

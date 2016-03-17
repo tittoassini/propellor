@@ -72,11 +72,11 @@ readProcessEnv cmd args environ =
 		return output
   where
 	p = (proc cmd args)
-		{ std_out = CreatePipe
+		{ std_out = X.CreatePipe
 		, env = environ
 		}
 
-{- Runs an action to write to a process on its stdin, 
+{- Runs an action to write to a process on its stdin,
  - returns its output, and also allows specifying the environment.
  -}
 writeReadProcessEnv
@@ -171,7 +171,7 @@ processTranscript' cmd opts environ input = do
 #ifndef mingw32_HOST_OS
 {- This implementation interleves stdout and stderr in exactly the order
  - the process writes them. -}
-	(readf, writef) <- createPipe
+	(readf, writef) <- System.Posix.IO.createPipe
 	readh <- fdToHandle readf
 	writeh <- fdToHandle writef
 	p@(_, _, _, pid) <- createProcess $
