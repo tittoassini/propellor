@@ -68,6 +68,10 @@ cd ~/.propellor;./propellor --spin 188.165.202.170
 
 cd ~/.propellor;./propellor --spin nano.quid2.org
 cd ~/.propellor;./propellor --spin quid2.org
+
+
+-- Stuff to add: quid2.net hchat-history
+
 -}
 
 -- * update to latest propellor when it works
@@ -80,7 +84,9 @@ p1 = do
 
 -- ssh-keygen -t rsa -b 2048
 
-tittoPub = "ssh-dss AAAAB3NzaC1kc3MAAACBALwa1J9HDpcRkMpliV3QnYPN5GDuasBdM1s+RpZ3v82PYyOxqVn+Vt79VYuyTc7TK8KnvsNDVnfFETHy3IxY772YRR8X+T2Wt1tcFBednPf5bIPafX1DhKPXTywG8Q4xriidzHZLlj3eyXWeCElxNk4c4d+NIWK7M3iJDCOphQeFAAAAFQCPaYqOr09/d/2taJmWlZvTP7xYEwAAAIBbyd/CjHf8zw0W1dNsZO0VXwieAPa/tAkCAxeWCsDxSyfeasXDtciJZEPAq6U4H67b3lHwU0afJw1NycfirP0hYsT2Icwg1KXhCD6zDaeswWidhLPII8Cz5vqfXDobIZF17bODh1WHUtuwLxwA4z6FiBU8EMkeDdm28R5fe0QemAAAAIB2dI4oruRoPpxJmC3ETVdT3zBp73eGr9nL8IU4i+uOuJGtb1nOCcJYQxSw/1qnEGIN/PBlR4tufV6KiBCPXcrl1GhhQ9oVUJBZyZrM29HDe9VZ3WCZ6usmNRnTEnq593O0189dv4XRZQkSts5f/hdRg/kToyqaG+egBerA9AfsrA== titto@ubuntu"
+tittoPubDSS = "ssh-dss AAAAB3NzaC1kc3MAAACBALwa1J9HDpcRkMpliV3QnYPN5GDuasBdM1s+RpZ3v82PYyOxqVn+Vt79VYuyTc7TK8KnvsNDVnfFETHy3IxY772YRR8X+T2Wt1tcFBednPf5bIPafX1DhKPXTywG8Q4xriidzHZLlj3eyXWeCElxNk4c4d+NIWK7M3iJDCOphQeFAAAAFQCPaYqOr09/d/2taJmWlZvTP7xYEwAAAIBbyd/CjHf8zw0W1dNsZO0VXwieAPa/tAkCAxeWCsDxSyfeasXDtciJZEPAq6U4H67b3lHwU0afJw1NycfirP0hYsT2Icwg1KXhCD6zDaeswWidhLPII8Cz5vqfXDobIZF17bODh1WHUtuwLxwA4z6FiBU8EMkeDdm28R5fe0QemAAAAIB2dI4oruRoPpxJmC3ETVdT3zBp73eGr9nL8IU4i+uOuJGtb1nOCcJYQxSw/1qnEGIN/PBlR4tufV6KiBCPXcrl1GhhQ9oVUJBZyZrM29HDe9VZ3WCZ6usmNRnTEnq593O0189dv4XRZQkSts5f/hdRg/kToyqaG+egBerA9AfsrA== titto@ubuntu"
+
+tittoPub = "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAIEAocIwSm4oaxdFyWSGGnsjNkjPunzoAEu0Fg72sZeko+wYvimNPc4iPsPVbq9Q9awCgHlL1xpfy0l8HxtJfG6AUW73+Z8l+OpoAHwK6HESGkH3mpyWvLCkt6+MwczI2moxM32GuqO7but85Q1bHTJkhe3XcbJsZh85kJKrE6ejmD0= titto@nesport5"
 
 nanoPub = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC/h5q0pshKWDldX+vk2pFo/JdfcgrCBt73R7h/pThvyXshBGKYCB+X3dsT1ew895A9tSUIbwC7yCjXClPFfva++a7SA9D8qEWtoWuhm3KUqsGnA/5RhiyYl5WODt005xzksGUaRSTggc++0jegtDsNKADpqEY8c74ffg09C1mWGBKgJE+OCYSEpWsQ+KDpbwyyZvaUiVIDt11XfM7zwwidbgOtTO3+cohE/EkkgR47YD/OEdtcgTzemEy6Z/zdLa2uQeiCgVauSPTmJR9FKD76etaiFDTeHkLdpuCPO3NhDKR1cobRYReyatQLa3lCWdQWCUNx0AUX6vBWf7VbAX0V"
 
@@ -114,6 +120,9 @@ hosts =
           & quid2CheckService
           & quid2TittoService -- BUG: fails to start unless is already running
 
+
+        ,host "mega.quid2.org"
+         & failOvers ["151.80.195.136","151.80.195.137","151.80.195.138","151.80.195.139"]
           -- Initial setup
           -- Problem with debian 8, cannot access github unless
           -- apt-get install ca-certificates

@@ -3,7 +3,7 @@ module Propellor.Types.Dns where
 import Propellor.Types.OS (HostName)
 
 import Data.Word
-import Data.Monoid
+-- import Data.Monoid
 import qualified Data.Map as M
 
 type Domain = String
